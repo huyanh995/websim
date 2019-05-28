@@ -273,7 +273,7 @@ def simulate_alpha(sess, alpha_code, top, region):  # Need to check again.
         tried_sim_time = tried_sim_time + 1
     return None
 
-
+# Check tomorrow
 def submit(alpha_id, sess):
     max_tried_times = 15
     tried_times = 1
