@@ -3,6 +3,7 @@ import json
 import time
 import threading
 from common import config
+from datetime import datetime
 
 login_url = "https://api.worldquantvrc.com/authentication"
 sim_url = "https://api.worldquantvrc.com/simulations"
@@ -163,6 +164,8 @@ def get_alpha_info(alpha_id, sess):
                 elif len(alpha_res_json["is"]["details"]["records"]) < 12:
                     alpha_info["weight_test"]="FAIL"
                     break
+            alpha_info["self_corr"]=0
+            alpha_info["prod_corr"]=0
             alpha_info["longCount"]=alpha_res_json["is"]["longCount"]
             alpha_info["shortCount"]=alpha_res_json["is"]["shortCount"]
             alpha_info["pnl"]=alpha_res_json["is"]["pnl"]
@@ -298,7 +301,7 @@ for x, y in get_alpha_info("LO78Gv6",sess).items():
 #                  change_name(alpha_id, sess, name = "flag")
             
 
-
+print(type(datetime.now())
 
 
 
