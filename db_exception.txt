@@ -1,0 +1,9 @@
+2019-05-29 01:51:54.623606:  1366 (HY000): Incorrect integer value: 'abc' for column 'count_used' at row 1
+2019-05-29 01:52:13.882795:  1366 (HY000): Incorrect integer value: 'abc' for column 'count_used' at row 1
+2019-05-29 02:08:58.918951:  Not all parameters were used in the SQL statement
+2019-05-29 02:09:46.508406:  Not all parameters were used in the SQL statement
+2019-05-29 02:11:12.575584:  1146 (42S02): Table 'websim.combo' doesn't exist
+2019-05-29 02:11:32.396884:  1265 (01000): Data truncated for column 'created_at' at row 1
+2019-05-29 02:12:59.765920:  1406 (22001): Data too long for column 'settings' at row 1
+2019-05-29 02:13:34.508953:  1406 (22001): Data too long for column 'grade' at row 1
+2019-05-29 02:14:16.190934:  1406 (22001): Data too long for column 'submitted' at row 1

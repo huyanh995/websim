@@ -1,0 +1,8 @@
+# This file is a intruction to deploy this tool on Google Cloud Compute Engine or any VPS/VM.
+
+# python
+
+
+# mysql
+
+pip install mysql-connector-python
