@@ -1,4 +1,4 @@
-
+CREATE DATABASE websim;
 
 USE websim;
 

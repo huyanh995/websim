@@ -3,6 +3,10 @@ import json
 import time
 import threading
 from common import config
+from common.utils import *
+import mysql.connector as mysql
+
+from datetime import datetime
 
 login_url = "https://api.worldquantvrc.com/authentication"
 sim_url = "https://api.worldquantvrc.com/simulations"
@@ -12,12 +16,9 @@ headers = {
     'content-type': 'application/json'
 }
 
+################## SIMULATE and SUBMIT Function
 
-headers = {
-    'content-type': 'application/json'
-}
-
-def simulate_alpha(sess, alpha_code, top, region):
+def simulate_alpha(sess, alpha_code, top, region):  # Need to check again.
     # Simulate alpha (mostly use for signals). Input alpha, universe and region.
     # For signals simulation, alphas have fitness > 0.7, sharpe > 0.7 and corr < determined values are called signals.
     max_tried_times = 10
@@ -52,3 +53,28 @@ def simulate_alpha(sess, alpha_code, top, region):
         time.sleep(0.5)
         tried_sim_time = tried_sim_time + 1
     return None
+
+# Check tomorrow
+def submit(alpha_id, sess):
+    max_tried_times = 15
+    tried_times = 1
+    print("Submit alpha id: "+str(alpha_id))
+    if check_submission(alpha_id, sess) is True:
+        if check_selfcorr(alpha_id, sess) <= 0.7:
+            if check_prodcorr(alpha_id, sess) <= 0.7:
+                while tried_times < max_tried_times:
+                    submit_url = "https://api.worldquantvrc.com/alphas/"+alpha_id+"/submit"
+                    response = sess.post(submit_url, headers=headers)
+                    if len(response.text) != 0:  # Dumb condition, only for testing
+                        submit_log = open("submit_log.txt", "a+")
+                        submit_log.write(
+                            str(alpha_id) + "===" + str(response.text) + "\n")
+                        submit_log.close()
+                        break
+                print("Recorded into log file")
+            else:
+                print("FAIL: Prod Corr")
+        else:
+            print("FAIL: Self Corr")
+    else:
+        print("FAIL: Submission Test")
