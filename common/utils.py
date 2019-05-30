@@ -23,21 +23,22 @@ def ERRORS(s, response):
                     'An invalid response was received from the upstream server', 'THROTTLED',
                     'The upstream server is timing out', 'Not found']
     if any(s in str(response) for s in ServerErrors):
+        db_insert_log("ERRORS: SERVER", s,"")
         return True
     elif 'Incorrect authentication credentials' in str(response):
-        print('LOG IN!!!')
+        db_insert_log("LOGIN", "STATUS: "+str(response.status_code), response.text)
         login(login_url, s)
         return True
     elif 'API rate limit exceeded' in str(response):
-        print('API rate limit exceeded!!')
+        db_insert_log("API","",response.text)
         time.sleep(5 * 60)
         return True
     elif 'maintenance downtime' in str(response):
-        print("MAINTENANCE DOWNTIME!")
+        db_insert_log("MAINTAIN","",response.text)
         time.sleep(1800)
         return True
     return False
-
+#SIMULATION_LIMIT_EXCEEDED
 ################## Database related Function
 
 def db_insert_log(func_name, exception, response):
@@ -63,11 +64,13 @@ def db_insert_signals(alpha_info, self_corr =0, prod_corr =0):
     try:
         db = mysql.connect(**config.config_db)
         cursor = db.cursor()
-        query = "INSERT INTO signals (alpha_id, created_at, alpha_code, settings, sharpe, fitness, self_corr, prod_corr, longCount, shortCount, pnl, turnover, count_used) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
+        query = "INSERT INTO signals (alpha_id, created_at, alpha_code, region, universe, settings, sharpe, fitness, self_corr, prod_corr, longCount, shortCount, pnl, turnover, count_used) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
         values = (
             str(alpha_info["alpha_id"]),
             str(alpha_info["create_day"]),
             str(alpha_info["alpha_code"]),
+            str(alpha_info["region"]),
+            str(alpha_info["universe"]),
             str(alpha_info["settings"]),
             float(alpha_info["sharpe"]),
             float(alpha_info["fitness"]),
@@ -253,10 +256,10 @@ def get_alpha_info(alpha_id, sess):
     # to receive important information
     # Another purpose is to filter alphas for signals, alphas which satisfied sharpe and fitness
     # greater or equal than a determined value and passed the weight test is considered to be signal
-    alpha_url_info = alpha_url + str(alpha_id)
-    response = sess.get(alpha_url_info, data="", headers=headers)
-    alpha_res_json = json.loads(response.content)
     try:
+        alpha_url_info = alpha_url + str(alpha_id)
+        response = sess.get(alpha_url_info, data="", headers=headers)
+        alpha_res_json = json.loads(response.content)
         if ERRORS(sess, response.content):
             time.sleep(3)
         else:
@@ -266,6 +269,8 @@ def get_alpha_info(alpha_id, sess):
                 alpha_res_json["dateCreated"].split("T")[0]) #YYYY-MM-DD format
             alpha_info["alpha_code"] = alpha_res_json["code"]
             alpha_info["settings"] = alpha_res_json["settings"]
+            alpha_info["region"]= alpha_info["settings"]["region"]
+            alpha_info["universe"] = alpha_info["settings"]["universe"]
             alpha_info["sharpe"] = alpha_res_json["is"]["sharpe"]
             alpha_info["fitness"] = alpha_res_json["is"]["fitness"]
             alpha_info["grade"] = alpha_res_json["grade"]

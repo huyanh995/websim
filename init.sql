@@ -26,6 +26,8 @@ CREATE TABLE signals (
     alpha_id VARCHAR(10) NOT NULL,
     created_at DATE,
     alpha_code VARCHAR(3000),
+    region VARCHAR(10),
+    universe VARCHAR(10),
     settings VARCHAR(1000),
     sharpe FLOAT,
     fitness FLOAT,
