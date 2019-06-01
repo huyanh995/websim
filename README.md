@@ -5,8 +5,8 @@ An automatic simulation and checking submission for websim
 * Your account information:
 
 ```python
-username = 'yourusername'\
-password = 'yourpassword'\
+username = 'yourusername'
+password = 'yourpassword'
 ```
 
 * Your MySQL config:
