@@ -66,8 +66,6 @@ def simulate_alpha(sess, alpha_code, top, region):  # Need to check again.
         db_insert_log("simulate_alpha",str(ex), "Job_ID :"+job_response.text+"\nAlpha_ID :"+alpha_response.text)
 
 
-# Submit alpha: For future.
-
 
 # For testing only
 sess = requests.session()
@@ -80,5 +78,5 @@ login(login_url, sess)
 # print(check_submission(temp, sess))
 
 
-# Signal generator: Generate signals from templates and datasets
+
 
