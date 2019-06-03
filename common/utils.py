@@ -127,10 +127,10 @@ def db_insert_combo(alpha_info, self_corr =0, prod_corr =0):
 
 ################## LOGIN Function
 
-def login(url, sess):
+def login(sess):
     # Login function: A session expires after 4 hours, function returns responsed json content and status
     # Add exception from Nhan in the future (Added)
-    response = sess.post(url, auth=(
+    response = sess.post(login_url, auth=(
         config.username, config.password), headers=headers)
     db_insert_log("LOGIN", "STATUS: "+str(response.status_code), response.text)
 
@@ -276,7 +276,7 @@ def get_alpha_info(alpha_id, sess):
             alpha_info["grade"] = alpha_res_json["grade"]
             for test in alpha_res_json["is"]["checks"]:
                 if test["name"] == "CONCENTRATED_WEIGHT":
-                    print(test["result"])
+                    #print(test["result"])
                     alpha_info["weight_test"] = test["result"]
                     break
                 elif len(alpha_res_json["is"]["details"]["records"]) < 12:
@@ -328,5 +328,3 @@ def change_name(alpha_id, sess, name="anonymous"):
         response = sess.patch(meta_url, data=json.dumps(data), headers=headers)
     except Exception as ex:
         db_insert_log("change_name",str(ex), response.text)
-
-

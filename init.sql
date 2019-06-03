@@ -45,6 +45,9 @@ CREATE TABLE log (
     logged_time DATETIME,
     func_name VARCHAR(50),
     exception VARCHAR(10000),
-    response VARCHAR(100000)
+    response VARCHAR(10000)
 );
+
+
+
 

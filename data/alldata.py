@@ -50,4 +50,3 @@ data['EUR'] = Price_Volume + Fundamental_EUR + Stock_Reports_Plus + Analyst_Revi
 data['ASI'] = Price_Volume + Fundamental_ASI + Stock_Reports_Plus + Analyst_Revision_Score + EPS_Estimate_Model + Credit_Risk_Model + Price_Momentum_Model +\
       Revenue_Estimate_Model + Growth_Valuation_Model + Smart_Ratios + Analyst_Revisions + EBITDA_Estimate_Model \
       + Creditworthiness_Model + Fundamental_Scores #+ Fundamental_Analysis_Model + Report_Footnotes
-
