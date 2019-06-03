@@ -1,4 +1,4 @@
-# This file is a intruction to deploy this tool on Google Cloud Compute Engine or any VPS/VM.
+# This file is a instruction to deploy this tool on Google Cloud Compute Engine or any VPS/VM (Tested on Ubuntu 18.04 LTS)
 
 ```console
 sudo apt-get update

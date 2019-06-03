@@ -93,7 +93,7 @@ def multi_simulate(sess, alpha_codes, top, region, thread_num):
                 print("Thread {}: SIMULATING: ".format(thread_num) + str(alpha_code))
             job_response = sess.post(
                 sim_url, data=json.dumps(payload), headers=headers)
-            print("1ST STEP: " + str(job_response.headers))
+            #print("1ST STEP: " + str(job_response.headers))
             # Get JSON string from server
             if 'SIMULATION_LIMIT_EXCEED' in job_response.text:
                 time.sleep(3)
@@ -101,11 +101,11 @@ def multi_simulate(sess, alpha_codes, top, region, thread_num):
             # Maybe separate blank response from server in another function (Test it later)
             else: 
                 parent_job_id = job_response.headers["Location"].split("/")[-1]
-                print("PARENT ID: " + str(parent_job_id))
+                #print("PARENT ID: " + str(parent_job_id))
                 while tried_step2_time < 5*max_tried_times:
                     sim_job_url = sim_url + "/" + str(parent_job_id)
                     sim_job_response = sess.get(sim_job_url, data="", headers = headers)
-                    print("2ND STEP: " + str(sim_job_response.text))
+                    #print("2ND STEP: " + str(sim_job_response.text))
                     if 'SIMULATION_LIMIT_EXCEED' in job_response.text:
                         time.sleep(3)
                     elif "progress" in sim_job_response.text:
@@ -113,7 +113,7 @@ def multi_simulate(sess, alpha_codes, top, region, thread_num):
                         tried_step2_time = tried_step2_time + 1
                     else:
                         children_job_ids = json.loads(sim_job_response.content)["children"]
-                        print("CHILDREN IDS: "+str(children_job_ids))
+                        #print("CHILDREN IDS: "+str(children_job_ids))
                         alpha_ids = []
                         for job_id in children_job_ids:
                             try:
@@ -126,7 +126,7 @@ def multi_simulate(sess, alpha_codes, top, region, thread_num):
                                     elif job_id in alpha_response.text: # Condition to know the simulation process is done. Maybe you will find a better solution.
                                         alpha_id = json.loads(alpha_response.content)["alpha"]
                                         alpha_ids.append(alpha_id)
-                                        print("Thread {}: DONE: ".format(thread_num)+str(alpha_id))
+                                        #print("Thread {}: DONE: ".format(thread_num)+str(alpha_id))
                                         break
                                     else:                                          
                                         time.sleep(0.5)
