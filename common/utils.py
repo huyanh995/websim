@@ -16,18 +16,18 @@ headers = {
 }
 ################## ERROR Function
 
-def ERRORS(s, response):
+def ERRORS(sess, response):
     # List all exceptions from responsed json string from server.
     # Thank Ho Duc Nhan for this part.
     ServerErrors = ['Time-out', 'Gateway', 'b\'\'', 'b\'{}\'', 'Server Error',
                     'An invalid response was received from the upstream server', 'THROTTLED',
                     'The upstream server is timing out', 'Not found']
-    if any(s in str(response) for s in ServerErrors):
-        db_insert_log("ERRORS: SERVER", s,"")
+    if any(err in str(response) for err in ServerErrors):
+        db_insert_log("ERRORS: SERVER", str(response), "")
         return True
     elif 'Incorrect authentication credentials' in str(response):
         db_insert_log("LOGIN", "STATUS: "+str(response.status_code), response.text)
-        login(login_url, s)
+        login(sess)
         return True
     elif 'API rate limit exceeded' in str(response):
         db_insert_log("API","",response.text)
@@ -281,7 +281,6 @@ def get_alpha_info(alpha_id, sess):
                     break
                 elif len(alpha_res_json["is"]["details"]["records"]) < 12:
                     alpha_info["weight_test"] = "FAIL"
-                    break
             alpha_info["self_corr"] = 0
             alpha_info["prod_corr"] = 0
             alpha_info["longCount"] = alpha_res_json["is"]["longCount"]
@@ -328,3 +327,4 @@ def change_name(alpha_id, sess, name="anonymous"):
         response = sess.patch(meta_url, data=json.dumps(data), headers=headers)
     except Exception as ex:
         db_insert_log("change_name",str(ex), response.text)
+

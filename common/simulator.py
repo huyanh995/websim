@@ -3,6 +3,8 @@ import json
 import time
 import threading
 import random
+import logging
+import sys
 
 from common import config
 from common.utils import *
@@ -77,11 +79,12 @@ def multi_simulate(sess, alpha_codes, top, region, thread_num):
     max_tried_times = 10
     # First step: POST request to get Job ID, if there're 10 simulteneously threads, wait 3 seconds and re-send.
     # Fofr multi or batch simulate, the results will be list of Job_ID.
-    tried_sim_time = 1  # For 1st step
-    # Second step: After get Job IDs, GET request to get a list of Alpha IDs.
-    tried_res_time = 1  # For 2nd step
+    tried_step1_time = 1  # For 1st step
+    tried_step2_time = 1  # For 2nd step
+    # Second step: After get parent Job_ID contains children Job_IDs, get Alpha_ID.
+    tried_res_time = 1  # For 3rd step
     try:
-        while tried_sim_time < max_tried_times:
+        while tried_step1_time < max_tried_times:
             payload = []
             for alpha_code in alpha_codes:
                 payload.append({"type": "SIMULATE", "settings": {"nanHandling": "OFF", "instrumentType": "EQUITY", "delay": 1, "universe": top, "truncation": 0.08, "unitHandling": "VERIFY",
@@ -90,34 +93,52 @@ def multi_simulate(sess, alpha_codes, top, region, thread_num):
                 print("Thread {}: SIMULATING: ".format(thread_num) + str(alpha_code))
             job_response = sess.post(
                 sim_url, data=json.dumps(payload), headers=headers)
+            print("1ST STEP: " + str(job_response.headers))
             # Get JSON string from server
             if 'SIMULATION_LIMIT_EXCEED' in job_response.text:
                 time.sleep(3)
             # No elif ERRORS in here because while API is processing, the response is b' ' which included in ERRORs >> So it'll be stuck in there. 
             # Maybe separate blank response from server in another function (Test it later)
             else: 
-                job_id = job_response.headers["Location"].split("/")[-1]
-                try:
-                    while tried_res_time < 10*max_tried_times:
-                        sim_alpha_url = sim_url + "/" + str(job_id)
-                        alpha_response = sess.get(
-                            sim_alpha_url, data="", headers=headers)
-                        if ERRORS(sess, alpha_response.content):
-                            time.sleep(3)
-                        else:
-                            if job_id in alpha_response.text: # Condition to know the simulation process is done. Maybe you will find a better solution.
-                                alpha_ids = json.loads(alpha_response.content)["children"]
-                                print("Thread {}: DONE: ".format(thread_num)+str(alpha_ids))
-                                return alpha_ids
-                        time.sleep(0.5)
-                        tried_res_time = tried_res_time + 1
-                except Exception as ex_alpha:
-                    db_insert_log("simulate_alpha",str(ex_alpha), "Job_ID :"+job_response.text+"\nAlpha_ID :"+alpha_response.text)
+                parent_job_id = job_response.headers["Location"].split("/")[-1]
+                print("PARENT ID: " + str(parent_job_id))
+                while tried_step2_time < 5*max_tried_times:
+                    sim_job_url = sim_url + "/" + str(parent_job_id)
+                    sim_job_response = sess.get(sim_job_url, data="", headers = headers)
+                    print("2ND STEP: " + str(sim_job_response.text))
+                    if 'SIMULATION_LIMIT_EXCEED' in job_response.text:
+                        time.sleep(3)
+                    elif "progress" in sim_job_response.text:
+                        time.sleep(1)
+                        tried_step2_time = tried_step2_time + 1
+                    else:
+                        children_job_ids = json.loads(sim_job_response.content)["children"]
+                        print("CHILDREN IDS: "+str(children_job_ids))
+                        alpha_ids = []
+                        for job_id in children_job_ids:
+                            try:
+                                while tried_res_time < 10*max_tried_times:
+                                    sim_alpha_url = sim_url + "/" + str(job_id)
+                                    alpha_response = sess.get(
+                                        sim_alpha_url, data="", headers=headers)
+                                    if ERRORS(sess, alpha_response.content):
+                                        time.sleep(3)
+                                    elif job_id in alpha_response.text: # Condition to know the simulation process is done. Maybe you will find a better solution.
+                                        alpha_id = json.loads(alpha_response.content)["alpha"]
+                                        alpha_ids.append(alpha_id)
+                                        print("Thread {}: DONE: ".format(thread_num)+str(alpha_id))
+                                        break
+                                    else:                                          
+                                        time.sleep(0.5)
+                                        tried_res_time = tried_res_time + 1
+                            except Exception as ex_alpha:
+                                db_insert_log("simulate_alpha",str(ex_alpha), "Job_ID :"+job_response.text+"\nAlpha_ID :"+alpha_response.text)
+                        return alpha_ids
             time.sleep(1)
-            tried_sim_time = tried_sim_time + 1
+            tried_step1_time = tried_step1_time + 1
         return None
     except Exception as ex:
-        db_insert_log("simulate_alpha",str(ex), "Job_ID :"+job_response.text)
+        db_insert_log("simulate_alpha",logging.exception(""), "Job_ID :"+job_response.text)
 
 
 
