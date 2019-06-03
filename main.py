@@ -74,7 +74,6 @@ def signal_simulate(thread_num):
         while True:
             alpha_codes = signal_generator.get_alphas(data)
             alpha_ids = simulator.multi_simulate(sess, alpha_codes, top, region, thread_num)
-            print(alpha_ids)
             for alpha_id in alpha_ids:
                 results = utils.get_alpha_info(alpha_id, sess)
                 if results["sharpe"] >= config.min_signal[0] and results["fitness"] >= config.min_signal[1]:
@@ -84,7 +83,7 @@ def signal_simulate(thread_num):
                         if  prodcorr <= config.min_signal[2]:
                             utils.db_insert_signals(results, selfcorr, prodcorr)
                 else:
-                    print("Thread {}: Not enough performance".format(thread_num))
+                    print("Thread {}: Alpha {}: Not enough performance".format(thread_num, alpha_id))
     except Exception as ex:
         logging.exception("")
         utils.db_insert_log("signal_simulate", str(ex), "")               
