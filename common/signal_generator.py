@@ -19,18 +19,7 @@ group = ['market', 'sector', 'industry', 'subindustry']
 def get_alphas(data):
     id = random.choice([0, 2, 2, 2, 4])
     alphas = []
-    pattern = [
-        "group_neutralize(rank( {} / {} ), {})",
-        "group_neutralize(group_rank(( {} / {}), {}), {})",
-
-        "group_neutralize(rank( ({} - {}) / {} ), {})",
-        "group_neutralize(group_rank(( ({} - {}) / {}), {}), {})",
-
-        "group_neutralize(rank( ({} + {}) / {} ), {})",
-        "group_neutralize(group_rank(( ({} + {}) / {}), {}), {})",
-    ]
-
-    chosen_ids = random.sample(range(0, len(data)+1), 3)
+    chosen_ids = random.sample(range(0, len(data)), 3)
     rnd_data1 = data[chosen_ids[0]]
     rnd_data2 = data[chosen_ids[1]]
     rnd_data3 = data[chosen_ids[2]]
@@ -39,15 +28,15 @@ def get_alphas(data):
     for rndGroupNeutralize in group:
         if id % 2 == 1:
             if id <= 1:
-                alpha = pattern[id].format(rnd_data1, rnd_data2, rnd_group, rndGroupNeutralize)
+                alpha = config.signal_template[id].format(rnd_data1, rnd_data2, rnd_group, rndGroupNeutralize)
             else:
-                alpha = pattern[id].format(rnd_data1, rnd_data2, rnd_data3, rnd_group, rndGroupNeutralize)
+                alpha = config.signal_template[id].format(rnd_data1, rnd_data2, rnd_data3, rnd_group, rndGroupNeutralize)
 
         else:
             if id <= 1:
-                alpha = pattern[id].format(rnd_data1, rnd_data2, rndGroupNeutralize)
+                alpha = config.signal_template[id].format(rnd_data1, rnd_data2, rndGroupNeutralize)
             else:
-                alpha = pattern[id].format(rnd_data1, rnd_data2, rnd_data3, rndGroupNeutralize)
+                alpha = config.signal_template[id].format(rnd_data1, rnd_data2, rnd_data3, rndGroupNeutralize)
         alphas.append(alpha)
 
     return alphas

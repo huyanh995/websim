@@ -2,10 +2,61 @@ import requests
 import json
 import time
 import threading
-from common import config
+import logging
+from common import config, utils
 import mysql.connector as mysql
+import random
 
 from datetime import datetime
 
 # Generate combos from signals stored in Database.
 # Read count value in Vu's codes.
+
+
+def update_count_used(alpha_id):
+    # Update count value for each signal in alpha_ids.
+    try:
+        db = mysql.connect(**config.config_db)
+        cursor = db.cursor()
+        last_used = str(datetime.now()).split(" ")[0]
+        query = "UPDATE signals SET count_used = count_used + 1, last_used = \'{}\' WHERE alpha_id = \'{}\'".format(last_used, alpha_id) 
+        cursor.execute(query)
+        db.commit()
+    except Exception as ex:
+        utils.db_insert_log("update_count_used", str(ex), "")
+
+# def get_signal_list(region, top):
+#     return
+
+def get_set_signals(top, region):
+    # Return a dictionary contains alpha_id and alpha_code of signals.
+    # For prepare combination step.
+    try:
+        db = mysql.connect(**config.config_db)
+        cursor = db.cursor()
+        query = "SELECT alpha_id, alpha_code FROM signals WHERE count_used <= {}".format(config.max_signal_count)
+        cursor.execute(query)
+        records = cursor.fetchall()
+        diction = dict((x,y) for x,y in records) 
+        return diction
+    except Exception as ex:
+        utils.db_insert_log("get_set_signals", str(ex), "")
+
+def generate_combo(signals, num_signal, top, region):
+    try:
+        rnd_signals = random.sample(signals.items(), num_signal)
+        combo_signal= ""
+        combo = {"alpha_code":"", "region":region, "top":top}
+        index = 0
+        combo_code = 'alpha = group_neutralize(add('
+        for signal in rnd_signals:
+            combo_signal = combo_signal + "sn" + str(index) + "=" + signal[1] + "; "
+            combo_code = combo_code + "sn" + str(index) + ", "
+            index = index + 1
+        combo_code = combo_signal + combo_code + 'filter = true), market); alpha'
+        combo["alpha_code"]=combo_code
+        return combo
+    except Exception as ex:
+        utils.db_insert_log("generate_combo", str(ex), "")
+
+

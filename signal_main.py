@@ -12,19 +12,12 @@ from common import config, signal_generator, simulator, utils
 from data import alldata
 
 
-# Main part to run the whole project. It can be separated into two parts.
-
-
 # 1. Simulate signals: (4 threadings)
 # signal_generator() -> (alphas) -> simulate() -> (alpha_id) -> get_alpha_info()
 # -> (alpha_info) -> check conditions -> db_insert_signals()
 
-
-
-# 2. Simulate combos: (6 threadings)
-# combo_generator() -> (alphas) -> simulate() -> (alpha_id) -> get_alpha_info()
-# -> (alpha_info) -> check conditions -> db_insert_signals()
 tops = ["100", "150", "200", "400", "500", "600", "800", "1000", "1200", "1500", "2000", "3000"]
+print("SIGNAL GENERATOR\n")
 print("Choose region and universe first.\n")
 input_region = input("Region (1: USA 2: EUR 3: ASI): ")
 assert(input_region in ["1","2","3"])
@@ -47,28 +40,6 @@ data = alldata.data[region]
 print("\n==================================================")
 print("Region: {}, Universe: {}".format(region,top)+"\n")
 
-
-
-
-
-# def signal_simulate(thread_num): # Xem lai thread_num nhu the nao, cach van hanh.
-#     try:
-#         while True:
-#             alpha_codes = signal_generator.get_alphas(data)
-#             for alpha in alpha_codes:
-#                 alpha_id = simulator.simulate_alpha(sess, alpha, top, region, thread_num)
-#                 results = utils.get_alpha_info(alpha_id, sess)
-#                 if results["sharpe"] >= config.min_signal[0] and results["fitness"] >= config.min_signal[1]:
-#                     selfcorr = utils.check_selfcorr(alpha_id, sess)
-#                     if  selfcorr <= config.min_signal[2]:
-#                         prodcorr = utils.check_prodcorr(alpha_id, sess)
-#                         if  prodcorr <= config.min_signal[2]:
-#                             utils.db_insert_signals(results, selfcorr, prodcorr)
-#                 else:
-#                     print("Thread {}: Not enough performance".format(thread_num))
-#     except Exception as ex:
-#         utils.db_insert_log("signal_simulate", str(ex), "")
-
 def signal_simulate(thread_num):
     try:
         while True:
@@ -77,11 +48,14 @@ def signal_simulate(thread_num):
             for alpha_id in alpha_ids:
                 results = utils.get_alpha_info(alpha_id, sess)
                 if results["sharpe"] >= config.min_signal[0] and results["fitness"] >= config.min_signal[1]:
-                    selfcorr = utils.check_selfcorr(alpha_id, sess)
+                    selfcorr = float(utils.check_selfcorr(alpha_id, sess))
                     if  selfcorr <= config.min_signal[2]:
-                        prodcorr = utils.check_prodcorr(alpha_id, sess)
+                        prodcorr = float(utils.check_prodcorr(alpha_id, sess))
                         if  prodcorr <= config.min_signal[2]:
-                            utils.db_insert_signals(results, selfcorr, prodcorr)
+                            results["self_corr"]=selfcorr
+                            results["prod_corr"]=prodcorr
+                            utils.db_insert_signals(results)
+                            utils.change_name(alpha_id, "signal")
                 else:
                     print("Thread {}: Alpha {}: Not enough performance".format(thread_num, alpha_id))
     except Exception as ex:

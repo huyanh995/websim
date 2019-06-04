@@ -594,3 +594,14 @@
 2019-06-03 22:56:11.492411: LOG    :  Python type Session cannot be converted
 2019-06-03 22:56:14.872986: LOG    :  Python type Session cannot be converted
 2019-06-03 22:58:49.915411: LOG    :  Python type Session cannot be converted
+2019-06-04 22:47:53.436184: SIGNAL :  1062 (23000): Duplicate entry 'EoPxoGG' for key 'PRIMARY'
+2019-06-04 22:49:24.249708: SIGNAL :  1062 (23000): Duplicate entry 'zXneXN1' for key 'PRIMARY'
+2019-06-04 22:49:25.511902: SIGNAL :  1062 (23000): Duplicate entry 'zXneXN1' for key 'PRIMARY'
+2019-06-04 22:49:26.774571: SIGNAL :  1062 (23000): Duplicate entry 'zXneXN1' for key 'PRIMARY'
+2019-06-05 00:56:59.142821: SIGNAL :  1062 (23000): Duplicate entry 'zXneXN1' for key 'PRIMARY'
+2019-06-05 01:00:26.988804: SIGNAL :  1062 (23000): Duplicate entry 'zXneXN1' for key 'PRIMARY'
+2019-06-05 01:03:36.759082: SIGNAL :  1062 (23000): Duplicate entry 'zXneXN1' for key 'PRIMARY'
+2019-06-05 01:14:48.902621: SIGNAL :  Not all parameters were used in the SQL statement
+2019-06-05 01:16:02.533292: SIGNAL :  1136 (21S01): Column count doesn't match value count at row 1
+2019-06-05 01:38:54.498098: SIGNAL :  1062 (23000): Duplicate entry 'zXneXN1' for key 'PRIMARY'
+2019-06-05 01:39:46.522980: SIGNAL :  1062 (23000): Duplicate entry 'zXneXN1' for key 'PRIMARY'

@@ -19,14 +19,16 @@ headers = {
 def ERRORS(sess, response):
     # List all exceptions from responsed json string from server.
     # Thank Ho Duc Nhan for this part.
-    ServerErrors = ['Time-out', 'Gateway', 'b\'\'', 'b\'{}\'', 'Server Error',
+    # 'b\'\''
+    # 'b\'{}\''
+    ServerErrors = ['Time-out', 'Gateway', 'Server Error',
                     'An invalid response was received from the upstream server', 'THROTTLED',
                     'The upstream server is timing out', 'Not found']
     if any(err in str(response) for err in ServerErrors):
-        db_insert_log("ERRORS: SERVER", str(response), "")
+        db_insert_log("ERRORS: SERVER", "", str(response))
         return True
     elif 'Incorrect authentication credentials' in str(response):
-        db_insert_log("LOGIN", "STATUS: "+str(response.status_code), response.text)
+        db_insert_login("LOGIN", "STATUS: "+str(response.status_code), response.text)
         login(sess)
         return True
     elif 'API rate limit exceeded' in str(response):
@@ -57,14 +59,30 @@ def db_insert_log(func_name, exception, response):
         db_exception.write(log_mess)
         db_exception.close()
 
+def db_insert_login(func_name, exception, response):
+    # This function will record all exception of below functions into database (For LOGIN only, testing for a while and delete it after)
+    # It's need to create database first, following the init.sql file.
+    try:
+        db = mysql.connect(**config.config_db)
+        cursor = db.cursor()
+        query = "INSERT INTO login_log (logged_time, func_name, exception, response) VALUES (%s, %s, %s, %s)"
+        values = (str(datetime.now()), func_name, exception, response)
+        cursor.execute(query, values)
+        db.commit()
+    except Exception as ex:
+        db_exception = open("db_exception.txt", "a+")
+        log_mess = str(datetime.now())+": LOG    :  "+str(ex)+"\n"
+        db_exception.write(log_mess)
+        db_exception.close()
 
-def db_insert_signals(alpha_info, self_corr =0, prod_corr =0):
+
+def db_insert_signals(alpha_info):
     # Insert signals data into signals tables.
     # alpha_info is a dictionary type get from get_alpha_info()
     try:
         db = mysql.connect(**config.config_db)
         cursor = db.cursor()
-        query = "INSERT INTO signals (alpha_id, created_at, alpha_code, region, universe, settings, sharpe, fitness, self_corr, prod_corr, longCount, shortCount, pnl, turnover, count_used) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
+        query = "INSERT INTO signals (alpha_id, created_at, alpha_code, region, universe, settings, sharpe, fitness, self_corr, prod_corr, longCount, shortCount, pnl, turnover, last_used, count_used) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
         values = (
             str(alpha_info["alpha_id"]),
             str(alpha_info["create_day"]),
@@ -74,13 +92,14 @@ def db_insert_signals(alpha_info, self_corr =0, prod_corr =0):
             str(alpha_info["settings"]),
             float(alpha_info["sharpe"]),
             float(alpha_info["fitness"]),
-            self_corr,
-            prod_corr,
+            float(alpha_info["self_corr"]),
+            float(alpha_info["prod_corr"]),
             int(alpha_info["longCount"]),
             int(alpha_info["shortCount"]), 
             int(alpha_info["pnl"]),
             float(alpha_info["turnover"])*100,
-            1
+            None,
+            0
             )
         cursor.execute(query, values)
         db.commit()
