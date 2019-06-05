@@ -4,6 +4,8 @@ import time
 import threading
 import _thread
 import logging
+import traceback
+
 import mysql.connector as mysql
 from datetime import datetime
 
@@ -47,7 +49,10 @@ def signal_simulate(thread_num):
             alpha_ids = simulator.multi_simulate(sess, alpha_codes, top, region, thread_num)
             for alpha_id in alpha_ids:
                 results = utils.get_alpha_info(alpha_id, sess)
-                if results["sharpe"] >= config.min_signal[0] and results["fitness"] >= config.min_signal[1]:
+                if results["weight_test"] == 'FAIL':
+                    print("Thread {}: Alpha {}: Not enough performance".format(thread_num, alpha_id))
+                    break
+                elif results["sharpe"] >= config.min_signal[0] and results["fitness"] >= config.min_signal[1]:
                     selfcorr = float(utils.check_selfcorr(alpha_id, sess))
                     if  selfcorr <= config.min_signal[2]:
                         prodcorr = float(utils.check_prodcorr(alpha_id, sess))
@@ -59,8 +64,8 @@ def signal_simulate(thread_num):
                 else:
                     print("Thread {}: Alpha {}: Not enough performance".format(thread_num, alpha_id))
     except Exception as ex:
-        logging.exception("")
-        utils.db_insert_log("signal_simulate", str(ex), "")               
+        trace_msg = traceback.format_exception(etype=type(ex), value=ex, tb=ex.__traceback__)
+        utils.db_insert_log("signal_simulate", str(trace_msg), "")               
 
 
 sess = requests.session()

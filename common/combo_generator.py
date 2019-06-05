@@ -23,7 +23,8 @@ def update_count_used(alpha_id):
         cursor.execute(query)
         db.commit()
     except Exception as ex:
-        utils.db_insert_log("update_count_used", str(ex), "")
+        trace_msg = traceback.format_exception(etype=type(ex), value=ex, tb=ex.__traceback__)
+        utils.db_insert_log("update_count_used", str(trace_msg), str(query))
 
 # def get_signal_list(region, top):
 #     return
@@ -40,7 +41,8 @@ def get_set_signals(top, region):
         diction = dict((x,y) for x,y in records) 
         return diction
     except Exception as ex:
-        utils.db_insert_log("get_set_signals", str(ex), "")
+        trace_msg = traceback.format_exception(etype=type(ex), value=ex, tb=ex.__traceback__)
+        utils.db_insert_log("get_set_signals", str(trace_msg), str(query))
 
 def generate_combo(signals, num_signal, top, region):
     try:
@@ -57,6 +59,7 @@ def generate_combo(signals, num_signal, top, region):
         combo["alpha_code"]=combo_code
         return combo
     except Exception as ex:
-        utils.db_insert_log("generate_combo", str(ex), "")
+        trace_msg = traceback.format_exception(etype=type(ex), value=ex, tb=ex.__traceback__)
+        utils.db_insert_log("generate_combo", str(trace_msg), combo_code)
 
 

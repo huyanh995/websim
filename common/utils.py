@@ -2,6 +2,7 @@ import requests
 import json
 import time
 import threading
+import traceback
 from common import config
 import mysql.connector as mysql
 
@@ -54,8 +55,9 @@ def db_insert_log(func_name, exception, response):
         cursor.execute(query, values)
         db.commit()
     except Exception as ex:
+        trace_msg = traceback.format_exception(etype=type(ex), value=ex, tb=ex.__traceback__)
         db_exception = open("db_exception.txt", "a+")
-        log_mess = str(datetime.now())+": LOG    :  "+str(ex)+"\n"
+        log_mess = str(datetime.now())+": LOG    :  "+str(trace_msg)+"\n"
         db_exception.write(log_mess)
         db_exception.close()
 
@@ -70,8 +72,9 @@ def db_insert_login(func_name, exception, response):
         cursor.execute(query, values)
         db.commit()
     except Exception as ex:
+        trace_msg = traceback.format_exception(etype=type(ex), value=ex, tb=ex.__traceback__)
         db_exception = open("db_exception.txt", "a+")
-        log_mess = str(datetime.now())+": LOG    :  "+str(ex)+"\n"
+        log_mess = str(datetime.now())+": LOG    :  "+str(trace_msg)+"\n"
         db_exception.write(log_mess)
         db_exception.close()
 
@@ -104,8 +107,9 @@ def db_insert_signals(alpha_info):
         cursor.execute(query, values)
         db.commit()
     except Exception as ex:
+        trace_msg = traceback.format_exception(etype=type(ex), value=ex, tb=ex.__traceback__)
         db_exception = open("db_exception.txt", "a+")
-        log_mess = str(datetime.now())+": SIGNAL :  "+str(ex)+"\n"
+        log_mess = str(datetime.now())+": SIGNAL :  "+str(trace_msg)+"\n"
         db_exception.write(log_mess)
         db_exception.close()
 
@@ -139,8 +143,9 @@ def db_insert_combo(alpha_info, self_corr =0, prod_corr =0):
         cursor.execute(query, values)
         db.commit()
     except Exception as ex:
+        trace_msg = traceback.format_exception(etype=type(ex), value=ex, tb=ex.__traceback__)
         db_exception = open("db_exception.txt", "a+")
-        log_mess = str(datetime.now())+": COMBO  :  "+str(ex)+"\n"
+        log_mess = str(datetime.now())+": COMBO  :  "+str(trace_msg)+"\n"
         db_exception.write(log_mess)
         db_exception.close()
 
@@ -182,7 +187,8 @@ def check_prodcorr(alpha_id, sess):
             print('CONNECTION LOST!')
             time.sleep(20)
         except Exception as ex:
-            db_insert_log("check_prodcorr",str(ex), response.text)
+            trace_msg = traceback.format_exception(etype=type(ex), value=ex, tb=ex.__traceback__)
+            db_insert_log("check_prodcorr",str(trace_msg), response.text)
             return -1
     # If reaching max tried time and still can not calculate prod corr, return -1
     # it means this alpha id failed to check prod corr
@@ -210,7 +216,8 @@ def check_selfcorr(alpha_id, sess):
         except ConnectionError:
             print('CONNECTION LOST!')
         except Exception as ex:
-            db_insert_log("check_selfcorr",str(ex), response.text)
+            trace_msg = traceback.format_exception(etype=type(ex), value=ex, tb=ex.__traceback__)
+            db_insert_log("check_selfcorr",str(trace_msg), response.text)
             return -1
     return -1
 
@@ -251,7 +258,8 @@ def check_submission(alpha_id, sess):
         except ConnectionError:
             time.sleep(20)
         except Exception as ex:
-            db_insert_log("check_submission",str(ex), response.text)
+            trace_msg = traceback.format_exception(etype=type(ex), value=ex, tb=ex.__traceback__)
+            db_insert_log("check_submission",str(trace_msg), response.text)
             return True, -1, -1, tried_times
     return True, -1, -1, tried_times
 
@@ -294,12 +302,13 @@ def get_alpha_info(alpha_id, sess):
             alpha_info["fitness"] = alpha_res_json["is"]["fitness"]
             alpha_info["grade"] = alpha_res_json["grade"]
             for test in alpha_res_json["is"]["checks"]:
-                if test["name"] == "CONCENTRATED_WEIGHT":
+                if len(alpha_res_json["is"]["details"]["records"]) < 12:
+                    alpha_info["weight_test"] = "FAIL"
+                    break
+                elif test["name"] == "CONCENTRATED_WEIGHT":
                     #print(test["result"])
                     alpha_info["weight_test"] = test["result"]
                     break
-                elif len(alpha_res_json["is"]["details"]["records"]) < 12:
-                    alpha_info["weight_test"] = "FAIL"
             alpha_info["self_corr"] = 0
             alpha_info["prod_corr"] = 0
             alpha_info["longCount"] = alpha_res_json["is"]["longCount"]
@@ -314,7 +323,8 @@ def get_alpha_info(alpha_id, sess):
     except ConnectionError:
         print('CONNECTION LOST!')
     except Exception as ex:
-        db_insert_log("get_alpha_info",str(ex), response.text)
+        trace_msg = traceback.format_exception(etype=type(ex), value=ex, tb=ex.__traceback__)
+        db_insert_log("get_alpha_info",str(trace_msg), response.text)
         for x in alpha_info:
             alpha_info[x] = ""
         return alpha_info
@@ -334,7 +344,8 @@ def hide_alpha(alpha_id, sess):
         response = sess.patch(url, data=payload, headers=headers)
         # print(response.text) # For testing only
     except Exception as ex:
-        db_insert_log("hide_alpha",str(ex), response.text)
+        trace_msg = traceback.format_exception(etype=type(ex), value=ex, tb=ex.__traceback__)
+        db_insert_log("hide_alpha",str(trace_msg), response.text)
 
 
 def change_name(alpha_id, sess, name="anonymous"):
@@ -345,5 +356,9 @@ def change_name(alpha_id, sess, name="anonymous"):
     try:
         response = sess.patch(meta_url, data=json.dumps(data), headers=headers)
     except Exception as ex:
-        db_insert_log("change_name",str(ex), response.text)
+        trace_msg = traceback.format_exception(etype=type(ex), value=ex, tb=ex.__traceback__)
+        db_insert_log("change_name",str(trace_msg), response.text)
+
+
+
 

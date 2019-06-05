@@ -4,18 +4,14 @@ import time
 import threading
 import _thread
 import logging
+import traceback
+
 import mysql.connector as mysql
 from datetime import datetime
 
 
 from common import config, signal_generator, simulator, utils, combo_generator
 from data import alldata
-
-
-# 1. Simulate signals: (4 threadings)
-# signal_generator() -> (alphas) -> simulate() -> (alpha_id) -> get_alpha_info()
-# -> (alpha_info) -> check conditions -> db_insert_signals()
-
 
 
 # 2. Simulate combos: (6 threadings)
@@ -68,8 +64,8 @@ def combo_simulate(thread_num):
         else:
             print("Thread {}: Alpha {}: Not enough performance".format(thread_num, alpha_id))
     except Exception as ex:
-        logging.exception("")
-        utils.db_insert_log("combo_simulate", str(ex), "")   
+        trace_msg = traceback.format_exception(etype=type(ex), value=ex, tb=ex.__traceback__)
+        utils.db_insert_log("combo_simulate", str(trace_msg), "")   
 
 
 sess = requests.session()

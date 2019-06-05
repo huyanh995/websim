@@ -5,6 +5,7 @@ import threading
 import random
 import logging
 import sys
+import traceback
 
 from common import config
 from common.utils import *
@@ -65,12 +66,14 @@ def simulate_alpha(sess, alpha_code, top, region, thread_num):
                         time.sleep(0.5)
                         tried_res_time = tried_res_time + 1
                 except Exception as ex_alpha:
-                    db_insert_log("simulate_alpha",str(ex_alpha), "Job_ID :"+job_response.text+"\nAlpha_ID :"+alpha_response.text)
+                    trace_msg_alpha = traceback.format_exception(etype=type(ex_alpha), value=ex_alpha, tb=ex_alpha.__traceback__)
+                    db_insert_log("simulate_alpha",str(trace_msg_alpha), "Job_ID :"+job_response.text+"\nAlpha_ID :"+alpha_response.text)
             time.sleep(1)
             tried_sim_time = tried_sim_time + 1
         return None
     except Exception as ex:
-        db_insert_log("simulate_alpha",str(ex), "Job_ID :"+job_response.text) # alpha_response chua duoc khoi tao neu exception xay ra tai job_response.
+        trace_msg = traceback.format_exception(etype=type(ex), value=ex, tb=ex.__traceback__)
+        db_insert_log("simulate_alpha",str(trace_msg), "Job_ID :"+job_response.text) # alpha_response chua duoc khoi tao neu exception xay ra tai job_response.
 
 
 def multi_simulate(sess, alpha_codes, top, region, thread_num):
@@ -132,13 +135,15 @@ def multi_simulate(sess, alpha_codes, top, region, thread_num):
                                         time.sleep(0.5)
                                         tried_res_time = tried_res_time + 1
                             except Exception as ex_alpha:
-                                db_insert_log("simulate_alpha",str(ex_alpha), "Job_ID :"+job_response.text+"\nAlpha_ID :"+alpha_response.text)
+                                trace_msg_alpha = traceback.format_exception(etype=type(ex_alpha), value=ex_alpha, tb=ex_alpha.__traceback__)
+                                db_insert_log("simulate_alpha",str(trace_msg_alpha), "Job_ID :"+job_response.text+"\nAlpha_ID :"+alpha_response.text)
                         return alpha_ids
             time.sleep(1)
             tried_step1_time = tried_step1_time + 1
         return None
     except Exception as ex:
-        db_insert_log("simulate_alpha",logging.exception(""), "Job_ID :"+job_response.text)
+        trace_msg = traceback.format_exception(etype=type(ex), value=ex, tb=ex.__traceback__)
+        db_insert_log("simulate_alpha", str(trace_msg), "Job_ID :"+job_response.text)
 
 
 

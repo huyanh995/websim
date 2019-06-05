@@ -2,6 +2,7 @@
 
 ```console
 sudo apt-get update
+sudo dpkg-reconfigure tzdata (Change timezone to Asia\Ho Chi Minh City)
 ```
 
 ## python

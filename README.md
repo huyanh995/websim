@@ -40,5 +40,5 @@ num_sim = (no of signal, no of combo)
 signal_template = ["template 1", "template 2", ... ]
 combo_template = ["template 1", "template 2", ... ]
 ```
-
+## Follow the prerequisite.md to install requested package and settings.
 
