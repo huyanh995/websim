@@ -25,7 +25,7 @@ def check_again(sess):
             print(query_update)       
             cursor.execute(query_update)
             db.commit()
-            if selfcorr < 0.7:
+            if selfcorr < 0.7 and selfcorr > 0:
                 utils.change_name(alpha_id[0], sess, name = "lasthope")
             else:
                 utils.change_name(alpha_id[0], sess, name = "nohope")

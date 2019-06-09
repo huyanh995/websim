@@ -45,27 +45,30 @@ print("Number of signal combination: {}".format(num_signals)+"\n")
 
 # Get a list contains alpha_ids from signals. Update every 20 minutes. (PENDING)
 def combo_simulate(thread_num):
-    try:
-        list_signal = combo_generator.get_set_signals(top, region)
-        # for x, y in list_signal.items():
-        #     print(x, y)
-        combo_alpha = combo_generator.generate_combo(list_signal, num_signals, top, region)
-        # print(combo_alpha)
-        alpha_id = simulator.simulate_alpha(sess, combo_alpha["alpha_code"], top, region, thread_num)
-        # print("ID" + str(alpha_id))
-        alpha_info = utils.get_alpha_info(alpha_id, sess)
-        if alpha_info["sharpe"] >= config.min_combo[0] and alpha_info["fitness"] >= config.min_combo[1]:
-            result, selfcorr, prodcorr, _ = utils.check_submission(alpha_id, sess)
-            if result is True and max(selfcorr, prodcorr) <= config.min_combo[2]: 
-                alpha_info["self_corr"] = selfcorr
-                alpha_info["prod_corr"] = prodcorr
-                utils.change_name(alpha_id, sess, "combo")
-                combo_generator.update_count_used(alpha_id)
-        else:
-            print("Thread {}: Alpha {}: Not enough performance".format(thread_num, alpha_id))
-    except Exception as ex:
-        trace_msg = traceback.format_exception(etype=type(ex), value=ex, tb=ex.__traceback__)
-        utils.db_insert_log("combo_simulate", str(trace_msg), "")   
+    while True:
+        try:
+            list_signal = combo_generator.get_set_signals(top, region)
+            # for x, y in list_signal.items():
+            #     print(x, y)
+            combo_alpha = combo_generator.generate_combo(list_signal, num_signals, top, region)
+            # print(combo_alpha)
+            alpha_id = simulator.simulate_alpha(sess, combo_alpha["alpha_code"], top, region, thread_num)
+            utils.change_name(alpha_id, sess, name="potential")
+            # print("ID" + str(alpha_id))
+            alpha_info = utils.get_alpha_info(alpha_id, sess)
+            if alpha_info["sharpe"] >= config.min_combo[0] and alpha_info["fitness"] >= config.min_combo[1]:
+                result, selfcorr, prodcorr, _ = utils.check_submission(alpha_id, sess)
+                if result is True and max(selfcorr, prodcorr) <= config.min_combo[2]: 
+                    alpha_info["self_corr"] = selfcorr
+                    alpha_info["prod_corr"] = prodcorr
+                    utils.change_name(alpha_id, sess, "combo")
+                    utils.db_insert_combo(alpha_info, selfcorr, prodcorr)
+                    combo_generator.update_count_used(alpha_id)
+            else:
+                print("Thread {}: Alpha {}: Not enough performance".format(thread_num, alpha_id))
+        except Exception as ex:
+            trace_msg = traceback.format_exception(etype=type(ex), value=ex, tb=ex.__traceback__)
+            utils.db_insert_log("combo_simulate", str(trace_msg), str(combo_alpha["alpha_code"]))   
 
 
 sess = requests.session()

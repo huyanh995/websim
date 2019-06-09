@@ -57,5 +57,11 @@ CREATE TABLE login_log (
     response VARCHAR(5000)
 );
 
-
+CREATE TABLE count_use (
+    id INT PRIMARY KEY NOT NULL AUTO_INCREMENT,
+    func_name VARCHAR(50),
+    no1 INT,
+    no2 INT,
+    no3 INT
+);
 

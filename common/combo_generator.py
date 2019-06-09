@@ -6,6 +6,7 @@ import logging
 from common import config, utils
 import mysql.connector as mysql
 import random
+import traceback
 
 from datetime import datetime
 
@@ -22,6 +23,7 @@ def update_count_used(alpha_id):
         query = "UPDATE signals SET count_used = count_used + 1, last_used = \'{}\' WHERE alpha_id = \'{}\'".format(last_used, alpha_id) 
         cursor.execute(query)
         db.commit()
+        db.close() 
     except Exception as ex:
         trace_msg = traceback.format_exception(etype=type(ex), value=ex, tb=ex.__traceback__)
         utils.db_insert_log("update_count_used", str(trace_msg), str(query))
@@ -39,6 +41,7 @@ def get_set_signals(top, region):
         cursor.execute(query)
         records = cursor.fetchall()
         diction = dict((x,y) for x,y in records) 
+        db.close()
         return diction
     except Exception as ex:
         trace_msg = traceback.format_exception(etype=type(ex), value=ex, tb=ex.__traceback__)

@@ -3,6 +3,7 @@ import json
 import time
 import threading
 import traceback
+import random
 from common import config
 import mysql.connector as mysql
 
@@ -19,25 +20,36 @@ headers = {
 
 def ERRORS(sess, response):
     # List all exceptions from responsed json string from server.
+    # Input: Session, Response.text (from requests module)
     # Thank Ho Duc Nhan for this part.
     # 'b\'\''
     # 'b\'{}\''
-    ServerErrors = ['Time-out', 'Gateway', 'Server Error',
-                    'An invalid response was received from the upstream server', 'THROTTLED',
+    ServerErrors = ['Time-out', 'Gateway', 'Server Error', '<html>'
+                    'An invalid response was received from the upstream server',
                     'The upstream server is timing out', 'Not found']
-    if any(err in str(response) for err in ServerErrors):
-        db_insert_log("ERRORS: SERVER", "", str(response))
-        return True
-    elif 'Incorrect authentication credentials' in str(response):
-        db_insert_login("LOGIN", "STATUS: "+str(response.status_code), response.text)
+    # if any(err in str(response) for err in ServerErrors):
+    #     db_insert_log("ERRORS: SERVER", "", str(response))
+    #     return True
+
+    # This following for loop is for testing only. After that, you should use the above code for faster executing time.
+    for err in ServerErrors:
+        if err in response:
+            db_insert_log("ERRORS: SERVER",str(err), str(response))
+            return True
+    if 'Incorrect authentication credentials' in str(response): # You know its meaning :)
+        db_insert_login("LOGIN", "", response)
         login(sess)
         return True
-    elif 'API rate limit exceeded' in str(response):
-        db_insert_log("API","",response.text)
+    elif 'API rate limit exceeded' in str(response): # Exceed maximum times for checking corrs per day.
+        db_insert_log("API","",response)
         time.sleep(5 * 60)
         return True
-    elif 'maintenance downtime' in str(response):
-        db_insert_log("MAINTAIN","",response.text)
+    elif 'THROTTLED' in str(response): # Exceed concurrent check submission.
+        db_insert_log("API SUBMISSION","",response)
+        time.sleep(random.randint(5,100))
+        return True
+    elif 'maintenance downtime' in str(response): # Websim is became stupid and need fix.
+        db_insert_log("MAINTAIN","",response)
         time.sleep(1800)
         return True
     return False
@@ -54,6 +66,7 @@ def db_insert_log(func_name, exception, response):
         values = (str(datetime.now()), func_name, exception, response)
         cursor.execute(query, values)
         db.commit()
+        db.close()
     except Exception as ex:
         trace_msg = traceback.format_exception(etype=type(ex), value=ex, tb=ex.__traceback__)
         db_exception = open("db_exception.txt", "a+")
@@ -71,6 +84,7 @@ def db_insert_login(func_name, exception, response):
         values = (str(datetime.now()), func_name, exception, response)
         cursor.execute(query, values)
         db.commit()
+        db.close()
     except Exception as ex:
         trace_msg = traceback.format_exception(etype=type(ex), value=ex, tb=ex.__traceback__)
         db_exception = open("db_exception.txt", "a+")
@@ -106,6 +120,7 @@ def db_insert_signals(alpha_info):
             )
         cursor.execute(query, values)
         db.commit()
+        db.close()
     except Exception as ex:
         trace_msg = traceback.format_exception(etype=type(ex), value=ex, tb=ex.__traceback__)
         db_exception = open("db_exception.txt", "a+")
@@ -142,6 +157,7 @@ def db_insert_combo(alpha_info, self_corr =0, prod_corr =0):
             )
         cursor.execute(query, values)
         db.commit()
+        db.close()
     except Exception as ex:
         trace_msg = traceback.format_exception(etype=type(ex), value=ex, tb=ex.__traceback__)
         db_exception = open("db_exception.txt", "a+")
@@ -149,6 +165,20 @@ def db_insert_combo(alpha_info, self_corr =0, prod_corr =0):
         db_exception.write(log_mess)
         db_exception.close()
 
+def db_insert_count(func_name, no1=-1, no2=-1, no3=-1):
+    try:
+        db = mysql.connect(**config.config_db)
+        cursor = db.cursor()
+        query = "INSERT INTO count_use (func_name, no1, no2, no3) VALUES (%s, %s, %s, %s)"
+        values = (func_name, no1, no2, no3)
+        cursor.execute(query, values)
+        db.commit()
+    except Exception as ex:
+        trace_msg = traceback.format_exception(etype=type(ex), value=ex, tb=ex.__traceback__)
+        db_exception = open("db_exception.txt", "a+")
+        log_mess = str(datetime.now())+": TEST   :  "+str(trace_msg)+"\n"
+        db_exception.write(log_mess)
+        db_exception.close()
 ################## LOGIN Function
 
 def login(sess):
@@ -156,14 +186,15 @@ def login(sess):
     # Add exception from Nhan in the future (Added)
     response = sess.post(login_url, auth=(
         config.username, config.password), headers=headers)
-    db_insert_log("LOGIN", "STATUS: "+str(response.status_code), response.text)
+    db_insert_login("LOGIN", "STATUS: "+str(response.status_code), response.text)
 
 ################## CHECK TESTS Function
 
 def check_prodcorr(alpha_id, sess):
     # Check prod corr function, input: alpha_id, output: prod corr.
     # Call api continuously until reached max tried time (pre-defined) or get result.
-    max_tried_times = 100
+    #max_tried_times = 150
+    max_tried_times = 1000 # For checking max valuable.
     tried_times = 1
     # print("Check product correlation alpha id: "+str(alpha_id)) # For testing only
     while tried_times < max_tried_times:
@@ -171,8 +202,8 @@ def check_prodcorr(alpha_id, sess):
             check_prodcorr_url = "https://api.worldquantvrc.com/alphas/" + \
                 str(alpha_id) + "/correlations/prod"
             response = sess.get(check_prodcorr_url, data="", headers=headers)
-            if ERRORS(sess, response.content):
-                time.sleep(5)
+            if ERRORS(sess, response.text):
+                time.sleep(1)
             elif "prodCorrelation" in response.text:
                 print("Tried times: "+str(tried_times))
                 prod_corr_res_obj = json.loads(response.content)["records"]
@@ -180,16 +211,17 @@ def check_prodcorr(alpha_id, sess):
                     if prod_corr_res_obj[len(prod_corr_res_obj)-x][2] != 0:
                         prod_corr = prod_corr_res_obj[len(
                             prod_corr_res_obj)-x][1]
+                        db_insert_count("check_prod", tried_times, -1, -1)
                         return prod_corr
-            time.sleep(0.5)
+            time.sleep(0.5) # Delayed time between requests.
             tried_times = tried_times + 1
-        except ConnectionError:
-            print('CONNECTION LOST!')
-            time.sleep(20)
+        # except ConnectionError:
+        #     print('CONNECTION LOST!')
+        #     time.sleep(20)
         except Exception as ex:
             trace_msg = traceback.format_exception(etype=type(ex), value=ex, tb=ex.__traceback__)
             db_insert_log("check_prodcorr",str(trace_msg), response.text)
-            return -1
+            return -2
     # If reaching max tried time and still can not calculate prod corr, return -1
     # it means this alpha id failed to check prod corr
     return -1
@@ -197,7 +229,8 @@ def check_prodcorr(alpha_id, sess):
 
 def check_selfcorr(alpha_id, sess):
     # Same functionality as prod corr check.
-    max_tried_time = 100
+    #max_tried_time = 150
+    max_tried_time = 1000 # For debugging only
     tried_times = 1
     print("Check self correlation alpha id: "+str(alpha_id))
     while tried_times < max_tried_time:
@@ -205,20 +238,21 @@ def check_selfcorr(alpha_id, sess):
             check_selfcorr_url = "https://api.worldquantvrc.com/alphas/" + \
                 alpha_id + "/correlations/self"
             response = sess.get(check_selfcorr_url, data="", headers=headers)
-            if ERRORS(sess, response.content):
-                time.sleep(5)
+            if ERRORS(sess, response.text):
+                time.sleep(1)
             elif "selfCorrelation" in response.text:
                 print("Tried times: "+str(tried_times))
                 self_corr = json.loads(response.content)["records"][0][5]
+                db_insert_count("check_prod", tried_times, -1, -1)
                 return self_corr
-            time.sleep(0.2)
+            time.sleep(0.5)
             tried_times = tried_times + 1
-        except ConnectionError:
-            print('CONNECTION LOST!')
+        # except ConnectionError:
+        #     print('CONNECTION LOST!')
         except Exception as ex:
             trace_msg = traceback.format_exception(etype=type(ex), value=ex, tb=ex.__traceback__)
             db_insert_log("check_selfcorr",str(trace_msg), response.text)
-            return -1
+            return -2
     return -1
 
 
@@ -232,7 +266,8 @@ def check_submission(alpha_id, sess):
     # If an alpha failed one of the tests > Return False, -1, -1 (Self/Prod Corr are in range of 0 to 1)
     # If after 15 times, the test is not completed or have any exception > Return True, -1, -1. This values mean
     # the alpha is considered re-run the test in the future.
-    max_tried_times = 15
+    #max_tried_times = 150
+    max_tried_times = 1000
     tried_times = 1
     print("Check submission tests alpha id: "+str(alpha_id))
     while tried_times < max_tried_times:
@@ -244,23 +279,26 @@ def check_submission(alpha_id, sess):
             if 'FAIL' in response.text:
                 # print("FAIL") # For testing only
                 return False, -1, -1, tried_times
-            elif 'PENDING' in response.text or ERRORS(sess, response.content):
+            elif 'PENDING' in response.text:
                 time.sleep(3)
-            else:
+            elif ERRORS(sess, response.text):
+                time.sleep(1)
+            elif 'checks' in response.text:
                 list_test = json.loads(response.content)["is"]["checks"]
                 for check in list_test:
                     if check['name'] == 'SELF_CORRELATION':
                         self_corr = check['value']
                     if check['name'] == 'PROD_CORRELATION':
                         prod_corr = check['value']
+                db_insert_count("check_submit", tried_times, -1, -1)
                 return True, self_corr, prod_corr, tried_times
             tried_times = tried_times + 1
-        except ConnectionError:
-            time.sleep(20)
+        # except ConnectionError:
+        #     time.sleep(20)
         except Exception as ex:
             trace_msg = traceback.format_exception(etype=type(ex), value=ex, tb=ex.__traceback__)
-            db_insert_log("check_submission",str(trace_msg), response.text)
-            return True, -1, -1, tried_times
+            db_insert_log("check_submission",str(trace_msg), "Response: " + str(response.text) + "Alpha_ID: " +str(alpha_id))
+            return True, -2, -2, tried_times
     return True, -1, -1, tried_times
 
 
@@ -283,51 +321,55 @@ def get_alpha_info(alpha_id, sess):
     # to receive important information
     # Another purpose is to filter alphas for signals, alphas which satisfied sharpe and fitness
     # greater or equal than a determined value and passed the weight test is considered to be signal
+    max_tried_time = 1000
+    tried_time = 1
     try:
-        alpha_url_info = alpha_url + str(alpha_id)
-        response = sess.get(alpha_url_info, data="", headers=headers)
-        alpha_res_json = json.loads(response.content)
-        if ERRORS(sess, response.content):
-            time.sleep(3)
-        else:
-            alpha_info = {}
-            alpha_info["alpha_id"] = alpha_res_json["id"]
-            alpha_info["create_day"] = str(
-                alpha_res_json["dateCreated"].split("T")[0]) #YYYY-MM-DD format
-            alpha_info["alpha_code"] = alpha_res_json["code"]
-            alpha_info["settings"] = alpha_res_json["settings"]
-            alpha_info["region"]= alpha_info["settings"]["region"]
-            alpha_info["universe"] = alpha_info["settings"]["universe"]
-            alpha_info["sharpe"] = alpha_res_json["is"]["sharpe"]
-            alpha_info["fitness"] = alpha_res_json["is"]["fitness"]
-            alpha_info["grade"] = alpha_res_json["grade"]
-            for test in alpha_res_json["is"]["checks"]:
-                if len(alpha_res_json["is"]["details"]["records"]) < 12:
-                    alpha_info["weight_test"] = "FAIL"
-                    break
-                elif test["name"] == "CONCENTRATED_WEIGHT":
-                    #print(test["result"])
-                    alpha_info["weight_test"] = test["result"]
-                    break
-            alpha_info["self_corr"] = 0
-            alpha_info["prod_corr"] = 0
-            alpha_info["longCount"] = alpha_res_json["is"]["longCount"]
-            alpha_info["shortCount"] = alpha_res_json["is"]["shortCount"]
-            alpha_info["pnl"] = alpha_res_json["is"]["pnl"]
-            alpha_info["returns"] = alpha_res_json["is"]["returns"]
-            alpha_info["turnover"] = alpha_res_json["is"]["turnover"]
-            alpha_info["margin"] = alpha_res_json["is"]["margin"]
-            alpha_info["drawdown"] = alpha_res_json["is"]["drawdown"]
-            alpha_info["status"] = alpha_res_json["status"]
-            return alpha_info
-    except ConnectionError:
-        print('CONNECTION LOST!')
+        while tried_time < max_tried_time:
+            alpha_url_info = alpha_url + str(alpha_id)
+            response = sess.get(alpha_url_info, data="", headers=headers)
+            alpha_res_json = json.loads(response.content)
+            if ERRORS(sess, response.text):
+                time.sleep(1)
+            elif alpha_id in alpha_res_json.text:
+                alpha_info = {}
+                alpha_info["alpha_id"] = alpha_res_json["id"]
+                alpha_info["create_day"] = str(
+                    alpha_res_json["dateCreated"].split("T")[0]) #YYYY-MM-DD format
+                alpha_info["alpha_code"] = alpha_res_json["code"]
+                alpha_info["settings"] = alpha_res_json["settings"]
+                alpha_info["region"]= alpha_info["settings"]["region"]
+                alpha_info["universe"] = alpha_info["settings"]["universe"]
+                alpha_info["sharpe"] = alpha_res_json["is"]["sharpe"]
+                alpha_info["fitness"] = alpha_res_json["is"]["fitness"]
+                alpha_info["grade"] = alpha_res_json["grade"]
+                for test in alpha_res_json["is"]["checks"]:
+                    if len(alpha_res_json["is"]["details"]["records"]) < 12:
+                        alpha_info["weight_test"] = "FAIL"
+                        break
+                    elif test["name"] == "CONCENTRATED_WEIGHT":
+                        #print(test["result"])
+                        alpha_info["weight_test"] = test["result"]
+                        break
+                alpha_info["self_corr"] = 0
+                alpha_info["prod_corr"] = 0
+                alpha_info["longCount"] = alpha_res_json["is"]["longCount"]
+                alpha_info["shortCount"] = alpha_res_json["is"]["shortCount"]
+                alpha_info["pnl"] = alpha_res_json["is"]["pnl"]
+                alpha_info["returns"] = alpha_res_json["is"]["returns"]
+                alpha_info["turnover"] = alpha_res_json["is"]["turnover"]
+                alpha_info["margin"] = alpha_res_json["is"]["margin"]
+                alpha_info["drawdown"] = alpha_res_json["is"]["drawdown"]
+                alpha_info["status"] = alpha_res_json["status"]
+                return alpha_info
+            else:
+                tried_time = tried_time + 1
+    # except ConnectionError:
+    #     print('CONNECTION LOST!')
+    #     return None
     except Exception as ex:
         trace_msg = traceback.format_exception(etype=type(ex), value=ex, tb=ex.__traceback__)
         db_insert_log("get_alpha_info",str(trace_msg), response.text)
-        for x in alpha_info:
-            alpha_info[x] = ""
-        return alpha_info
+        return None
 
 
 
@@ -357,7 +399,10 @@ def change_name(alpha_id, sess, name="anonymous"):
         response = sess.patch(meta_url, data=json.dumps(data), headers=headers)
     except Exception as ex:
         trace_msg = traceback.format_exception(etype=type(ex), value=ex, tb=ex.__traceback__)
-        db_insert_log("change_name",str(trace_msg), response.text)
+        if response.text:
+            db_insert_log("change_name",str(trace_msg), response.text)
+        else:
+            db_insert_log("change_name", str(trace_msg), str(alpha_id)+str(json.dumps(data)))
 
 
 
