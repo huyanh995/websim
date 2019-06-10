@@ -158,11 +158,15 @@ ts_operator = [
     ['ts_zscore({},' + days + ')', 1, 0]
 ]
 
-def operators():
-    return simple_operater + logical_operator + complex_operator + cross_sectional_operator + ts_operator + group_operator
+# def operators():
+#     return simple_operater + logical_operator + complex_operator + cross_sectional_operator + ts_operator + group_operator
 #operators = simple_operater +\
 #            logical_operator +\
 #            complex_operator + \
 #            cross_sectional_operator + \
 #            group_operator + \
 #            ts_operator
+def operators():
+    return ts_operator
+
+

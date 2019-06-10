@@ -330,7 +330,7 @@ def get_alpha_info(alpha_id, sess):
             alpha_res_json = json.loads(response.content)
             if ERRORS(sess, response.text):
                 time.sleep(1)
-            elif alpha_id in alpha_res_json.text:
+            elif alpha_id in str(alpha_res_json):
                 alpha_info = {}
                 alpha_info["alpha_id"] = alpha_res_json["id"]
                 alpha_info["create_day"] = str(
