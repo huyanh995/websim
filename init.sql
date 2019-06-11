@@ -19,6 +19,7 @@ CREATE TABLE combo (
     turnover FLOAT,
     margin FLOAT,
     drawdown FLOAT,
+    theme INT,
     submitted VARCHAR(50)
 );
 
@@ -37,6 +38,7 @@ CREATE TABLE signals (
     shortCount INT,
     pnl INT,
     turnover FLOAT,
+    theme INT,
     last_used DATE,
     count_used INT
 );

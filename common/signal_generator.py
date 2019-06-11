@@ -40,11 +40,9 @@ def get_alphas(data):
         rndGroup = random.choice(group)
         if rndTemplate[2] == 0:
             for rndGroupNeutralize in group:
-                print(rndGroupNeutralize)
                 alphas.append(rndTemplate[0].format(*rndData, rndGroupNeutralize))
         elif rndTemplate[2] == 1:
             for rndGroupNeutralize in group:
-                print(rndGroupNeutralize)
                 alphas.append(rndTemplate[0].format(*rndData, rndGroup, rndGroupNeutralize))
         return alphas
     except Exception as ex:

@@ -99,7 +99,7 @@ def db_insert_signals(alpha_info):
     try:
         db = mysql.connect(**config.config_db)
         cursor = db.cursor()
-        query = "INSERT INTO signals (alpha_id, created_at, alpha_code, region, universe, settings, sharpe, fitness, self_corr, prod_corr, longCount, shortCount, pnl, turnover, last_used, count_used) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
+        query = "INSERT INTO signals (alpha_id, created_at, alpha_code, region, universe, settings, sharpe, fitness, self_corr, prod_corr, longCount, shortCount, pnl, turnover, theme, last_used, count_used) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
         values = (
             str(alpha_info["alpha_id"]),
             str(alpha_info["create_day"]),
@@ -115,6 +115,7 @@ def db_insert_signals(alpha_info):
             int(alpha_info["shortCount"]), 
             int(alpha_info["pnl"]),
             float(alpha_info["turnover"])*100,
+            int(alpha_info["theme"]),
             None,
             0
             )
@@ -129,13 +130,13 @@ def db_insert_signals(alpha_info):
         db_exception.close()
 
 
-def db_insert_combo(alpha_info, self_corr =0, prod_corr =0):
+def db_insert_combo(alpha_info):
     # Insert alpha informations into combo tables.
     # Using alpha_info dictionary get from get_my_info()
     try:
         db = mysql.connect(**config.config_db)
         cursor = db.cursor()
-        query = "INSERT INTO combo (alpha_id, created_at, alpha_code, settings, sharpe, fitness, grade, self_corr, prod_corr, longCount, shortCount, pnl, returns_, turnover, margin, drawdown, submitted) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
+        query = "INSERT INTO combo (alpha_id, created_at, alpha_code, settings, sharpe, fitness, grade, self_corr, prod_corr, longCount, shortCount, pnl, returns_, turnover, margin, drawdown, theme, submitted) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
         values = (
             str(alpha_info["alpha_id"]),
             str(alpha_info["create_day"]),
@@ -144,8 +145,8 @@ def db_insert_combo(alpha_info, self_corr =0, prod_corr =0):
             float(alpha_info["sharpe"]),
             float(alpha_info["fitness"]),
             str(alpha_info["grade"]),
-            self_corr,
-            prod_corr,
+            float(alpha_info["self_corr"]),
+            float(alpha_info["prod_corr"]),
             int(alpha_info["longCount"]),
             int(alpha_info["shortCount"]), 
             int(alpha_info["pnl"]),
@@ -153,6 +154,7 @@ def db_insert_combo(alpha_info, self_corr =0, prod_corr =0):
             float(alpha_info["turnover"])*100,
             alpha_info["margin"]*10000,
             alpha_info["drawdown"],
+            int(alpha_info["theme"]),
             str(alpha_info["status"])
             )
         cursor.execute(query, values)
@@ -357,6 +359,7 @@ def get_alpha_info(alpha_id, sess):
                 alpha_info["pnl"] = alpha_res_json["is"]["pnl"]
                 alpha_info["returns"] = alpha_res_json["is"]["returns"]
                 alpha_info["turnover"] = alpha_res_json["is"]["turnover"]
+                alpha_info["theme"] = 0
                 alpha_info["margin"] = alpha_res_json["is"]["margin"]
                 alpha_info["drawdown"] = alpha_res_json["is"]["drawdown"]
                 alpha_info["status"] = alpha_res_json["status"]

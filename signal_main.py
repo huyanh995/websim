@@ -19,28 +19,41 @@ from data import alldata
 # -> (alpha_info) -> check conditions -> db_insert_signals()
 
 tops = ["100", "150", "200", "400", "500", "600", "800", "1000", "1200", "1500", "2000", "3000"]
-print("SIGNAL GENERATOR\n")
+print("\nSIGNAL GENERATOR\n")
 print("Choose region and universe first.\n")
 input_region = input("Region (1: USA 2: EUR 3: ASI): ")
-assert(input_region in ["1","2","3"])
+assert(input_region in ["1","2","3"]), "Wrong input!"
 if input_region == 1:
     region = "USA"
     input_top = str(input('TOP (200, 500, 1000, 2000, 3000): '))
     top = "TOP" + str(input_top)
-    assert(input_top in tops)
+    assert(input_top in tops), "Wrong input!"
 elif input_region == 2:
     region = "EUR"
     input_top = input('TOP (100, 400, 600, 800, 1200): ')
     top = "TOP" + str(input_top)
-    assert(input_top in tops)
+    assert(input_top in tops), "Wrong input!"
 else:
     region = "ASI"
     input_top = input('TOP (150, 500, 1000, 1500): ')
     top = "TOP" + str(input_top)
-    assert(input_top in tops)
-data = alldata.data[region]
+    assert(input_top in tops), "Wrong input!"
+input_theme = str(input("Do you want to apply current theme (Y/N): "))
+answers = ["Y","y","N",'n']
+assert(input_theme in answers), "Wrong input!"
+if input_theme == 'Y' or input_theme == 'y':
+    data = alldata.data['Theme']
+    answer = 'Yes'
+    theme = 1
+else: 
+    data = alldata.data[region]
+    answer = 'No'
+    theme = 0
+
+
 print("\n==================================================")
-print("Region: {}, Universe: {}".format(region,top)+"\n")
+print("Region: {}, Universe: {}".format(region,top))
+print("Apply theme: {}".format(answer)+"\n")
 
 def signal_simulate(thread_num):
     while True:
@@ -60,6 +73,7 @@ def signal_simulate(thread_num):
                             if  prodcorr <= config.min_signal[2]:
                                 results["self_corr"]=selfcorr
                                 results["prod_corr"]=prodcorr
+                                results["theme"] = theme
                                 utils.db_insert_signals(results)
                                 utils.change_name(alpha_id, sess, "signal")
                     else:

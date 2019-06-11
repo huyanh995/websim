@@ -18,7 +18,7 @@ from data import alldata
 # combo_generator() -> (alphas) -> simulate() -> (alpha_id) -> get_alpha_info()
 # -> (alpha_info) -> check conditions -> db_insert_signals()
 tops = ["100", "150", "200", "400", "500", "600", "800", "1000", "1200", "1500", "2000", "3000"]
-print("COMBO GENERATOR\n")
+print("\nCOMBO GENERATOR\n")
 print("Choose region and universe first.\n")
 input_region = input("Region (1: USA 2: EUR 3: ASI): ")
 assert(input_region in ["1","2","3"])
@@ -37,33 +37,41 @@ else:
     input_top = input('TOP (150, 500, 1000, 1500): ')
     top = "TOP" + str(input_top)
     assert(input_top in tops)
-data = alldata.data[region]
+
 num_signals = int(input("Number of signal combination: "))
+
+input_theme = str(input("Do you want to apply current theme (Y/N): "))
+answers = ["Y","y","N",'n']
+assert(input_theme in answers), "Wrong input!"
+if input_theme == 'Y' or input_theme == 'y':
+    theme = 1
+    answer = 'Yes'
+else: 
+    theme = 0
+    answer = 'No'
 print("\n==================================================")
 print("Region: {}, Universe: {}".format(region,top))
-print("Number of signal combination: {}".format(num_signals)+"\n")
-
+print("Number of signal combination: {}".format(num_signals))
+print("Apply theme: {}".format(answer)+"\n")
 # Get a list contains alpha_ids from signals. Update every 20 minutes. (PENDING)
 def combo_simulate(thread_num):
     while True:
         try:
-            list_signal = combo_generator.get_set_signals(top, region)
-            # for x, y in list_signal.items():
-            #     print(x, y)
-            combo_alpha = combo_generator.generate_combo(list_signal, num_signals, top, region)
-            # print(combo_alpha)
+            list_signal = combo_generator.get_set_signals(top, region, theme)
+            combo_alpha, list_alpha_ids = combo_generator.generate_combo(list_signal, num_signals, top, region)
             alpha_id = simulator.simulate_alpha(sess, combo_alpha["alpha_code"], top, region, thread_num)
             utils.change_name(alpha_id, sess, name="potential")
-            # print("ID" + str(alpha_id))
             alpha_info = utils.get_alpha_info(alpha_id, sess)
             if alpha_info["sharpe"] >= config.min_combo[0] and alpha_info["fitness"] >= config.min_combo[1]:
                 result, selfcorr, prodcorr, _ = utils.check_submission(alpha_id, sess)
                 if result is True and max(selfcorr, prodcorr) <= config.min_combo[2]: 
                     alpha_info["self_corr"] = selfcorr
                     alpha_info["prod_corr"] = prodcorr
+                    alpha_info["theme"] = theme
                     utils.change_name(alpha_id, sess, "combo")
-                    utils.db_insert_combo(alpha_info, selfcorr, prodcorr)
-                    combo_generator.update_count_used(alpha_id)
+                    utils.db_insert_combo(alpha_info)
+                    for signal_id in list_alpha_ids:
+                        combo_generator.update_count_used(signal_id)
             else:
                 print("Thread {}: Alpha {}: Not enough performance".format(thread_num, alpha_id))
         except Exception as ex:
@@ -73,7 +81,6 @@ def combo_simulate(thread_num):
 
 sess = requests.session()
 utils.login(sess)
-
 
 for i in range(config.num_sim[0],10):
     _thread.start_new_thread(combo_simulate, (i + 1,))
