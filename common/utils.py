@@ -46,7 +46,7 @@ def ERRORS(sess, response):
         return True
     elif 'THROTTLED' in str(response): # Exceed concurrent check submission.
         db_insert_log("API SUBMISSION","",response)
-        time.sleep(random.randint(5,100))
+        time.sleep(random.randint(60,180))
         return True
     elif 'maintenance downtime' in str(response): # Websim is became stupid and need fix.
         db_insert_log("MAINTAIN","",response)

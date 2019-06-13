@@ -68,7 +68,7 @@ def combo_simulate(thread_num):
                     alpha_info["self_corr"] = selfcorr
                     alpha_info["prod_corr"] = prodcorr
                     alpha_info["theme"] = theme
-                    utils.change_name(alpha_id, sess, "combo")
+                    utils.change_name(alpha_id, sess, "vac")
                     utils.db_insert_combo(alpha_info)
                     for signal_id in list_alpha_ids:
                         combo_generator.update_count_used(signal_id)
