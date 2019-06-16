@@ -19,5 +19,10 @@ sudo apt install mysql-server
 pip3 install mysql-connector-python
 ```
 For connecting MySQL remotely from your client, I strongly recommend to follow this tutorial (https://pieter-duplessis.co.za/blog/connecting-to-gcp-compute-engine-with-mysql-on-a-remote-ost/). Many thanks to Pieter du Plessis.
+If you got the error code 61 when connecting MySQL remotely, trying: sudo service mysql restart
+
+For MacOS only: Create a ssh key and connect to Google Compute Engine without accessing their console. I use Termius as SSH client.
+https://www.youtube.com/watch?v=2ibBF9YqveY&t=2s
+
 
 

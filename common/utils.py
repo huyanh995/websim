@@ -136,7 +136,7 @@ def db_insert_combo(alpha_info):
     try:
         db = mysql.connect(**config.config_db)
         cursor = db.cursor()
-        query = "INSERT INTO combo (alpha_id, created_at, alpha_code, settings, sharpe, fitness, grade, self_corr, prod_corr, longCount, shortCount, pnl, returns_, turnover, margin, drawdown, theme, submitted) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
+        query = "INSERT INTO combo (alpha_id, created_at, alpha_code, settings, sharpe, fitness, grade, self_corr, prod_corr, longCount, shortCount, pnl, returns_, turnover, margin, drawdown, theme) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
         values = (
             str(alpha_info["alpha_id"]),
             str(alpha_info["create_day"]),
@@ -154,8 +154,7 @@ def db_insert_combo(alpha_info):
             float(alpha_info["turnover"])*100,
             alpha_info["margin"]*10000,
             alpha_info["drawdown"],
-            int(alpha_info["theme"]),
-            str(alpha_info["status"])
+            int(alpha_info["theme"])
             )
         cursor.execute(query, values)
         db.commit()
@@ -164,6 +163,43 @@ def db_insert_combo(alpha_info):
         trace_msg = traceback.format_exception(etype=type(ex), value=ex, tb=ex.__traceback__)
         db_exception = open("db_exception.txt", "a+")
         log_mess = str(datetime.now())+": COMBO  :  "+str(trace_msg)+"\n"
+        db_exception.write(log_mess)
+        db_exception.close()
+
+def db_insert_submitted(alpha_info):
+    # Insert alpha informations into combo tables.
+    # Using alpha_info dictionary get from get_my_info()
+    try:
+        db = mysql.connect(**config.config_db)
+        cursor = db.cursor()
+        query = "INSERT INTO submitted (alpha_id, created_at, submitted_at, alpha_code, settings, sharpe, fitness, grade, self_corr, prod_corr, longCount, shortCount, pnl, returns_, turnover, margin, drawdown, theme) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
+        values = (
+            str(alpha_info["alpha_id"]),
+            str(alpha_info["create_day"]),
+            str(alpha_info["submit_day"]),
+            str(alpha_info["alpha_code"]),
+            str(alpha_info["settings"]),
+            float(alpha_info["sharpe"]),
+            float(alpha_info["fitness"]),
+            str(alpha_info["grade"]),
+            float(alpha_info["self_corr"]),
+            float(alpha_info["prod_corr"]),
+            int(alpha_info["longCount"]),
+            int(alpha_info["shortCount"]), 
+            int(alpha_info["pnl"]),
+            float(alpha_info["returns"]*100),
+            float(alpha_info["turnover"])*100,
+            alpha_info["margin"]*10000,
+            alpha_info["drawdown"],
+            int(alpha_info["theme"])
+            )
+        cursor.execute(query, values)
+        db.commit()
+        db.close()
+    except Exception as ex:
+        trace_msg = traceback.format_exception(etype=type(ex), value=ex, tb=ex.__traceback__)
+        db_exception = open("db_exception.txt", "a+")
+        log_mess = str(datetime.now())+":SUBMITTED:  "+str(trace_msg)+"\n"
         db_exception.write(log_mess)
         db_exception.close()
 
@@ -337,6 +373,8 @@ def get_alpha_info(alpha_id, sess):
                 alpha_info["alpha_id"] = alpha_res_json["id"]
                 alpha_info["create_day"] = str(
                     alpha_res_json["dateCreated"].split("T")[0]) #YYYY-MM-DD format
+                alpha_info["submit_day"] = str(
+                    alpha_res_json["dateSubmitted"].split("T")[0])
                 alpha_info["alpha_code"] = alpha_res_json["code"]
                 alpha_info["settings"] = alpha_res_json["settings"]
                 alpha_info["region"]= alpha_info["settings"]["region"]
@@ -408,5 +446,18 @@ def change_name(alpha_id, sess, name="anonymous"):
             db_insert_log("change_name", str(trace_msg), str(alpha_id)+str(json.dumps(data)))
 
 
-
+def get_payout(sess):
+    try:
+        response = sess.get('https://api.worldquantvrc.com/users/self/activities/base-payment')
+        payout_res = json.loads(response.content)
+        yesterday = payout_res["yesterday"]["value"]
+        this_month = payout_res["current"]["value"]
+        total = payout_res["total"]["value"]
+        return yesterday, this_month, total
+    except Exception as ex:
+        trace_msg = traceback.format_exception(etype=type(ex), value=ex, tb=ex.__traceback__)
+        if response.text:
+            db_insert_log("get_payout", str(trace_msg), response.text)
+        else:
+            db_insert_log("get_payout", str(trace_msg), "")
 

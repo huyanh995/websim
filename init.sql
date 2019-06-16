@@ -19,8 +19,7 @@ CREATE TABLE combo (
     turnover FLOAT,
     margin FLOAT,
     drawdown FLOAT,
-    theme INT,
-    submitted VARCHAR(50)
+    theme INT
 );
 
 CREATE TABLE signals (
@@ -41,6 +40,29 @@ CREATE TABLE signals (
     theme INT,
     last_used DATE,
     count_used INT
+);
+
+CREATE TABLE submitted (
+    alpha_id VARCHAR(10) PRIMARY KEY NOT NULL,
+    created_at DATE,
+    submitted_at DATE,
+    alpha_code VARCHAR(3000),
+    settings VARCHAR(1000),
+    sharpe FLOAT,
+    fitness FLOAT,
+    grade VARCHAR(50),
+    self_corr FLOAT,
+    prod_corr FLOAT,
+    longCount INT,
+    shortCount INT,
+    pnl INT,
+    returns_ FLOAT,
+    turnover FLOAT,
+    margin FLOAT,
+    drawdown FLOAT,
+    theme INT,
+    payout FLOAT,
+    submitted VARCHAR(50)
 );
 
 CREATE TABLE log (
