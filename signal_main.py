@@ -21,14 +21,14 @@ from data import alldata
 tops = ["100", "150", "200", "400", "500", "600", "800", "1000", "1200", "1500", "2000", "3000"]
 print("\nSIGNAL GENERATOR\n")
 print("Choose region and universe first.\n")
-input_region = input("Region (1: USA 2: EUR 3: ASI): ")
+input_region = str(input("Region (1: USA 2: EUR 3: ASI): "))
 assert(input_region in ["1","2","3"]), "Wrong input!"
-if input_region == 1:
+if input_region == "1":
     region = "USA"
     input_top = str(input('TOP (200, 500, 1000, 2000, 3000): '))
     top = "TOP" + str(input_top)
     assert(input_top in tops), "Wrong input!"
-elif input_region == 2:
+elif input_region == "2":
     region = "EUR"
     input_top = input('TOP (100, 400, 600, 800, 1200): ')
     top = "TOP" + str(input_top)
@@ -87,7 +87,7 @@ sess = requests.session()
 utils.login(sess)
 
 
-for i in range(config.num_sim[0]):
+for i in range(config.num_signal_threads):
     _thread.start_new_thread(signal_simulate, (i + 1,))
 
 while 1:

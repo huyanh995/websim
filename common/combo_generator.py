@@ -37,7 +37,7 @@ def get_set_signals(top, region, theme):
     try:
         db = mysql.connect(**config.config_db)
         cursor = db.cursor()
-        query = "SELECT alpha_id, alpha_code FROM signals WHERE count_used <= {} and theme = {}".format(config.max_signal_count, theme)
+        query = "SELECT alpha_id, alpha_code FROM signals WHERE count_used <= {} AND theme = {} AND universe = \'{}\'".format(config.max_signal_count, theme, top)
         cursor.execute(query)
         records = cursor.fetchall()
         diction = dict((x,y) for x,y in records) 
@@ -49,11 +49,11 @@ def get_set_signals(top, region, theme):
 
 def generate_combo(signals, num_signal, top, region):
     try:
-        rnd_signals = random.sample(signals.items(), num_signal)
+        rnd_signals = random.sample(signals.items(), num_signal) # Get a list contains alpha_id and alpha_code of (num_signal) signal.
         combo_signal= ""
-        combo = {"alpha_code":"", "region":region, "top":top}
+        combo = {"alpha_code":"", "region":region, "top":top} # Get a dictionary contains alpha_code, region and top.
         index = 0
-        list_alpha_ids = []
+        list_alpha_ids = [] # Get list of signal's alpha_id to increase count if combo is qualified.
         combo_code = 'alpha = group_neutralize(add('
         for signal in rnd_signals:
             combo_signal = combo_signal + "sn" + str(index) + "=" + signal[1] + "; "

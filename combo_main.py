@@ -64,11 +64,12 @@ def combo_simulate(thread_num):
             alpha_info = utils.get_alpha_info(alpha_id, sess)
             if alpha_info["sharpe"] >= config.min_combo[0] and alpha_info["fitness"] >= config.min_combo[1]:
                 result, selfcorr, prodcorr, _ = utils.check_submission(alpha_id, sess)
-                if result is True and max(selfcorr, prodcorr) <= config.min_combo[2]: 
+                print(result)
+                if result == True and max(selfcorr, prodcorr) <= config.min_combo[2]: 
                     alpha_info["self_corr"] = selfcorr
                     alpha_info["prod_corr"] = prodcorr
                     alpha_info["theme"] = theme
-                    utils.change_name(alpha_id, sess, "vac")
+                    utils.change_name(alpha_id, sess, "can_submit")
                     utils.db_insert_combo(alpha_info)
                     for signal_id in list_alpha_ids:
                         combo_generator.update_count_used(signal_id)
@@ -82,7 +83,7 @@ def combo_simulate(thread_num):
 sess = requests.session()
 utils.login(sess)
 
-for i in range(config.num_sim[0],10):
+for i in range(config.num_signal_threads,10):
     _thread.start_new_thread(combo_simulate, (i + 1,))
 
 while 1:

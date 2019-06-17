@@ -373,8 +373,11 @@ def get_alpha_info(alpha_id, sess):
                 alpha_info["alpha_id"] = alpha_res_json["id"]
                 alpha_info["create_day"] = str(
                     alpha_res_json["dateCreated"].split("T")[0]) #YYYY-MM-DD format
-                alpha_info["submit_day"] = str(
-                    alpha_res_json["dateSubmitted"].split("T")[0])
+                if alpha_res_json["dateSubmitted"] != None:
+                    alpha_info["submit_day"] = str(
+                        alpha_res_json["dateSubmitted"].split("T")[0])
+                else:
+                    alpha_info["submit_day"] = ""
                 alpha_info["alpha_code"] = alpha_res_json["code"]
                 alpha_info["settings"] = alpha_res_json["settings"]
                 alpha_info["region"]= alpha_info["settings"]["region"]

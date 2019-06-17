@@ -61,14 +61,19 @@ def simulate_alpha(sess, alpha_code, top, region, thread_num):
                         sim_alpha_url = sim_url + "/" + str(job_id)
                         alpha_response = sess.get(
                             sim_alpha_url, data="", headers=headers)
+                        print("{}: ".format(tried_res_time) + str(alpha_response))
+                        alpha_res_json = json.loads(alpha_response)
                         if ERRORS(sess, alpha_response.text):
                             time.sleep(1)
                         else:
                             if job_id in alpha_response.text: # Condition to know the simulation process is done. Maybe you will find a better solution.
-                                alpha_id = json.loads(alpha_response.content)["alpha"]
-                                print("Thread {}: DONE: ".format(thread_num)+str(alpha_id))
-                                db_insert_count("simulate_alpha",tried_sim_time, tried_res_time, -1)
-                                return alpha_id
+                                if alpha_res_json["status"] == 'COMPLETE':
+                                    alpha_id = json.loads(alpha_response.content)["alpha"]
+                                    print("Thread {}: DONE: ".format(thread_num)+str(alpha_id))
+                                    db_insert_count("simulate_alpha",tried_sim_time, tried_res_time, -1)
+                                    return alpha_id
+                                else:
+                                    break
                         time.sleep(0.5)
                         tried_res_time = tried_res_time + 1
                 except Exception as ex_alpha:
@@ -138,10 +143,15 @@ def multi_simulate(sess, alpha_codes, top, region, thread_num):
                                     if ERRORS(sess, alpha_response.text):
                                         time.sleep(1)
                                     elif job_id in alpha_response.text: # Condition to know the simulation process is done. Maybe you will find a better solution.
-                                        alpha_id = json.loads(alpha_response.content)["alpha"]
-                                        alpha_ids.append(alpha_id)
-                                        print("Thread {}: DONE: ".format(thread_num)+str(alpha_id))
-                                        break
+                                        alpha_res_json = json.loads(alpha_response.content)
+                                        if alpha_res_json["status"] == 'COMPLETE':
+                                            #alpha_id = json.loads(alpha_response.content)["alpha"]
+                                            alpha_id = alpha_res_json["alpha"]
+                                            alpha_ids.append(alpha_id)
+                                            print("Thread {}: DONE: ".format(thread_num)+str(alpha_id))
+                                            break
+                                        else:
+                                            break
                                     else:                                          
                                         time.sleep(0.5)
                                         tried_res_time = tried_res_time + 1
