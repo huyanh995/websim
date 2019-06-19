@@ -48,12 +48,12 @@ def simulate_alpha(sess, alpha_code, top, region, thread_num):
             # Get JSON string from server
             if 'SIMULATION_LIMIT_EXCEED' in job_response.text:
                 time.sleep(3)
-            elif ERRORS(sess, job_response.text):
+            elif ERRORS(sess, job_response.text, "simulate_alpha_1"):
                 time.sleep(1)
             # No elif ERRORS in here because while API is processing, the response is b' ' which included in ERRORs >> So it'll be stuck in there. 
             # Maybe separate blank response from server in another function (Test it later)
             elif "b\'\'" in job_response.text:
-                time.sleep(0.5)
+                time.sleep(1.0)
             else: 
                 job_id = job_response.headers["Location"].split("/")[-1]
                 try:
@@ -62,19 +62,19 @@ def simulate_alpha(sess, alpha_code, top, region, thread_num):
                         alpha_response = sess.get(
                             sim_alpha_url, data="", headers=headers)
                         print("{}: ".format(tried_res_time) + str(alpha_response))
-                        alpha_res_json = json.loads(alpha_response)
-                        if ERRORS(sess, alpha_response.text):
+                        if ERRORS(sess, alpha_response.text, "simulate_alpha_2"):
                             time.sleep(1)
                         else:
                             if job_id in alpha_response.text: # Condition to know the simulation process is done. Maybe you will find a better solution.
-                                if alpha_res_json["status"] == 'COMPLETE':
+                                alpha_res_json = json.loads(alpha_response.content)
+                                if alpha_res_json["status"] == 'COMPLETE' or alpha_res_json["status"] == "WARNING":
                                     alpha_id = json.loads(alpha_response.content)["alpha"]
                                     print("Thread {}: DONE: ".format(thread_num)+str(alpha_id))
                                     db_insert_count("simulate_alpha",tried_sim_time, tried_res_time, -1)
                                     return alpha_id
                                 else:
-                                    break
-                        time.sleep(0.5)
+                                    return None
+                        time.sleep(1.2)
                         tried_res_time = tried_res_time + 1
                 except Exception as ex_alpha:
                     trace_msg_alpha = traceback.format_exception(etype=type(ex_alpha), value=ex_alpha, tb=ex_alpha.__traceback__)
@@ -112,10 +112,10 @@ def multi_simulate(sess, alpha_codes, top, region, thread_num):
             # Get JSON string from server
             if 'SIMULATION_LIMIT_EXCEED' in job_response.text:
                 time.sleep(3)
-            elif ERRORS(sess, job_response.text):
+            elif ERRORS(sess, job_response.text, "multi_simulate_1"):
                 time.sleep(1)
             elif "b\'\'" in job_response.text:
-                time.sleep(0.5)
+                time.sleep(1.0)
             # No elif ERRORS in here because while API is processing, the response is b' ' which included in ERRORs >> So it'll be stuck in there. 
             # Maybe separate blank response from server in another function (Test it later) 
             else: 
@@ -128,7 +128,7 @@ def multi_simulate(sess, alpha_codes, top, region, thread_num):
                     if 'SIMULATION_LIMIT_EXCEED' in job_response.text:
                         time.sleep(3)
                     elif "progress" in sim_job_response.text:
-                        time.sleep(0.5)
+                        time.sleep(1.0)
                         tried_step2_time = tried_step2_time + 1
                     elif parent_job_id in sim_job_response.text: # Condition shows that the process is done.
                         children_job_ids = json.loads(sim_job_response.content)["children"]
@@ -140,27 +140,27 @@ def multi_simulate(sess, alpha_codes, top, region, thread_num):
                                     sim_alpha_url = sim_url + "/" + str(job_id)
                                     alpha_response = sess.get(
                                         sim_alpha_url, data="", headers=headers)
-                                    if ERRORS(sess, alpha_response.text):
+                                    if ERRORS(sess, alpha_response.text, "multi_simulate_2"):
                                         time.sleep(1)
                                     elif job_id in alpha_response.text: # Condition to know the simulation process is done. Maybe you will find a better solution.
                                         alpha_res_json = json.loads(alpha_response.content)
-                                        if alpha_res_json["status"] == 'COMPLETE':
+                                        if alpha_res_json["status"] == 'COMPLETE' or alpha_res_json["status"] == "WARNING":
                                             #alpha_id = json.loads(alpha_response.content)["alpha"]
                                             alpha_id = alpha_res_json["alpha"]
                                             alpha_ids.append(alpha_id)
                                             print("Thread {}: DONE: ".format(thread_num)+str(alpha_id))
                                             break
                                         else:
-                                            break
+                                            return None, tried_step1_time, tried_step2_time, tried_res_time
                                     else:                                          
-                                        time.sleep(0.5)
+                                        time.sleep(1.0)
                                         tried_res_time = tried_res_time + 1
                             except Exception as ex_alpha:
                                 trace_msg_alpha = traceback.format_exception(etype=type(ex_alpha), value=ex_alpha, tb=ex_alpha.__traceback__)
                                 db_insert_log("multi_simulate",str(trace_msg_alpha), "Job_ID :"+job_response.text+"\nAlpha_ID :"+alpha_response.text)
                         db_insert_count("multi_simulate",tried_step1_time, tried_step2_time, tried_res_time)
                         return alpha_ids, tried_step1_time, tried_step2_time, tried_res_time
-            time.sleep(0.5)
+            time.sleep(1.0)
             tried_step1_time = tried_step1_time + 1
         db_insert_count("multi_simulate",tried_step1_time, tried_step2_time, tried_res_time)
         return None, tried_step1_time, tried_step2_time, tried_res_time

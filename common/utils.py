@@ -18,7 +18,7 @@ headers = {
 }
 ################## ERROR Function
 
-def ERRORS(sess, response):
+def ERRORS(sess, response, func_name):
     # List all exceptions from responsed json string from server.
     # Input: Session, Response.text (from requests module)
     # Thank Ho Duc Nhan for this part.
@@ -34,19 +34,19 @@ def ERRORS(sess, response):
     # This following for loop is for testing only. After that, you should use the above code for faster executing time.
     for err in ServerErrors:
         if err in response:
-            db_insert_log("ERRORS: SERVER",str(err), str(response))
+            db_insert_log(func_name,str(err), str(response))
             return True
     if 'Incorrect authentication credentials' in str(response): # You know its meaning :)
         db_insert_login("LOGIN", "", response)
         login(sess)
         return True
     elif 'API rate limit exceeded' in str(response): # Exceed maximum times for checking corrs per day.
-        db_insert_log("API","",response)
+        db_insert_log(func_name, "API rate limit exceeded",response)
         time.sleep(5 * 60)
         return True
     elif 'THROTTLED' in str(response): # Exceed concurrent check submission.
-        db_insert_log("API SUBMISSION","",response)
-        time.sleep(random.randint(60,180))
+        db_insert_log(func_name, "THROTTLED",response)
+        time.sleep(random.randint(30,120))
         return True
     elif 'maintenance downtime' in str(response): # Websim is became stupid and need fix.
         db_insert_log("MAINTAIN","",response)
@@ -240,7 +240,7 @@ def check_prodcorr(alpha_id, sess):
             check_prodcorr_url = "https://api.worldquantvrc.com/alphas/" + \
                 str(alpha_id) + "/correlations/prod"
             response = sess.get(check_prodcorr_url, data="", headers=headers)
-            if ERRORS(sess, response.text):
+            if ERRORS(sess, response.text, "check_prodcorr"):
                 time.sleep(1)
             elif "prodCorrelation" in response.text:
                 print("Tried times: "+str(tried_times))
@@ -251,7 +251,7 @@ def check_prodcorr(alpha_id, sess):
                             prod_corr_res_obj)-x][1]
                         db_insert_count("check_prod", tried_times, -1, -1)
                         return prod_corr
-            time.sleep(0.5) # Delayed time between requests.
+            time.sleep(1.0) # Delayed time between requests.
             tried_times = tried_times + 1
         # except ConnectionError:
         #     print('CONNECTION LOST!')
@@ -276,14 +276,14 @@ def check_selfcorr(alpha_id, sess):
             check_selfcorr_url = "https://api.worldquantvrc.com/alphas/" + \
                 alpha_id + "/correlations/self"
             response = sess.get(check_selfcorr_url, data="", headers=headers)
-            if ERRORS(sess, response.text):
+            if ERRORS(sess, response.text, "check_selfcorr"):
                 time.sleep(1)
             elif "selfCorrelation" in response.text:
                 print("Tried times: "+str(tried_times))
                 self_corr = json.loads(response.content)["records"][0][5]
                 db_insert_count("check_prod", tried_times, -1, -1)
                 return self_corr
-            time.sleep(0.5)
+            time.sleep(1.0)
             tried_times = tried_times + 1
         # except ConnectionError:
         #     print('CONNECTION LOST!')
@@ -319,7 +319,7 @@ def check_submission(alpha_id, sess):
                 return False, -1, -1, tried_times
             elif 'PENDING' in response.text:
                 time.sleep(3)
-            elif ERRORS(sess, response.text):
+            elif ERRORS(sess, response.text, "check_submission"):
                 time.sleep(1)
             elif 'checks' in response.text:
                 list_test = json.loads(response.content)["is"]["checks"]
@@ -366,7 +366,7 @@ def get_alpha_info(alpha_id, sess):
             alpha_url_info = alpha_url + str(alpha_id)
             response = sess.get(alpha_url_info, data="", headers=headers)
             alpha_res_json = json.loads(response.content)
-            if ERRORS(sess, response.text):
+            if ERRORS(sess, str(response.text) + str(alpha_id), "get_alpha_info"):
                 time.sleep(1)
             elif alpha_id in str(alpha_res_json):
                 alpha_info = {}
@@ -449,18 +449,5 @@ def change_name(alpha_id, sess, name="anonymous"):
             db_insert_log("change_name", str(trace_msg), str(alpha_id)+str(json.dumps(data)))
 
 
-def get_payout(sess):
-    try:
-        response = sess.get('https://api.worldquantvrc.com/users/self/activities/base-payment')
-        payout_res = json.loads(response.content)
-        yesterday = payout_res["yesterday"]["value"]
-        this_month = payout_res["current"]["value"]
-        total = payout_res["total"]["value"]
-        return yesterday, this_month, total
-    except Exception as ex:
-        trace_msg = traceback.format_exception(etype=type(ex), value=ex, tb=ex.__traceback__)
-        if response.text:
-            db_insert_log("get_payout", str(trace_msg), response.text)
-        else:
-            db_insert_log("get_payout", str(trace_msg), "")
+
 

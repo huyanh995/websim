@@ -4,30 +4,29 @@ import time
 import threading
 import traceback
 import random
-from common import config, utils
+from common import config, utils, stuff
 import mysql.connector as mysql
 from datetime import datetime
 
 summary_url = 'https://api.worldquantvrc.com/users/self/alphas/summary'
-def get_summary(sess):
-    try:
-        response = sess.get(summary_url)
-        res_summary = json.loads(response.content)
-        is_sum = res_summary["is"]
-        os_sum = res_summary["os"]
-        prod_sum = res_summary["prod"]
-        return is_sum, os_sum, prod_sum 
-    except Exception as ex:
-        trace_msg = traceback.format_exception(etype=type(ex), value=ex, tb=ex.__traceback__)
-        utils.db_insert_log("get_summary",str(trace_msg), "")
+
 
 sess = requests.session()
 utils.login(sess)
+num_is = []
+start = 0
 while True:
     f = open('record.txt','a+')
-    is_sum, _, _ = get_summary(sess)
+    is_sum, _, _ = stuff.get_summary(sess)
+    num_is.append(is_sum)
     current_time = datetime.now()
-    f.write(str(current_time)+ "     " + str(is_sum)+'\n')
-    print("RECORDED")
-    time.sleep(5 * 60)
+    if len(num_is) <= 1:
+        f.write(str(current_time)+ "     " + str(is_sum)+'\n')
+        print("RECORDED")       
+    else:
+        diff = is_sum - num_is[start - 1]
+        f.write(str(current_time)+ "     " + str(is_sum)+ "     " + str(diff) + '\n')
+        print("RECORDED")
+    start = start + 1
+    time.sleep(0.5 * 60)
  

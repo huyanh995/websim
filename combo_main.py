@@ -20,14 +20,14 @@ from data import alldata
 tops = ["100", "150", "200", "400", "500", "600", "800", "1000", "1200", "1500", "2000", "3000"]
 print("\nCOMBO GENERATOR\n")
 print("Choose region and universe first.\n")
-input_region = input("Region (1: USA 2: EUR 3: ASI): ")
+input_region = str(input("Region (1: USA 2: EUR 3: ASI): "))
 assert(input_region in ["1","2","3"])
-if input_region == 1:
+if input_region == "1":
     region = "USA"
     input_top = str(input('TOP (200, 500, 1000, 2000, 3000): '))
     top = "TOP" + str(input_top)
     assert(input_top in tops)
-elif input_region == 2:
+elif input_region == "2":
     region = "EUR"
     input_top = input('TOP (100, 400, 600, 800, 1200): ')
     top = "TOP" + str(input_top)
@@ -61,20 +61,24 @@ def combo_simulate(thread_num):
             combo_alpha, list_alpha_ids = combo_generator.generate_combo(list_signal, num_signals, top, region)
             alpha_id = simulator.simulate_alpha(sess, combo_alpha["alpha_code"], top, region, thread_num)
             utils.change_name(alpha_id, sess, name="potential")
-            alpha_info = utils.get_alpha_info(alpha_id, sess)
-            if alpha_info["sharpe"] >= config.min_combo[0] and alpha_info["fitness"] >= config.min_combo[1]:
-                result, selfcorr, prodcorr, _ = utils.check_submission(alpha_id, sess)
-                print(result)
-                if result == True and max(selfcorr, prodcorr) <= config.min_combo[2]: 
-                    alpha_info["self_corr"] = selfcorr
-                    alpha_info["prod_corr"] = prodcorr
-                    alpha_info["theme"] = theme
-                    utils.change_name(alpha_id, sess, "can_submit")
-                    utils.db_insert_combo(alpha_info)
-                    for signal_id in list_alpha_ids:
-                        combo_generator.update_count_used(signal_id)
+            if alpha_id != None:
+                alpha_info = utils.get_alpha_info(alpha_id, sess)
+                if alpha_info["sharpe"] >= config.min_combo[0] and alpha_info["fitness"] >= config.min_combo[1]:
+                    result, selfcorr, prodcorr, _ = utils.check_submission(alpha_id, sess)
+                    print(result)
+                    if result == True and max(selfcorr, prodcorr) <= config.min_combo[2]: 
+                        alpha_info["self_corr"] = selfcorr
+                        alpha_info["prod_corr"] = prodcorr
+                        alpha_info["theme"] = theme
+                        utils.change_name(alpha_id, sess, "can_submit")
+                        utils.db_insert_combo(alpha_info)
+                        for signal_id in list_alpha_ids:
+                            combo_generator.update_count_used(signal_id)
+                else:
+                    print("Thread {}: Alpha {}: Not enough performance".format(thread_num, alpha_id))
             else:
-                print("Thread {}: Alpha {}: Not enough performance".format(thread_num, alpha_id))
+                print("Time-out")
+            
         except Exception as ex:
             trace_msg = traceback.format_exception(etype=type(ex), value=ex, tb=ex.__traceback__)
             utils.db_insert_log("combo_simulate", str(trace_msg), str(combo_alpha["alpha_code"]))   
@@ -83,9 +87,10 @@ def combo_simulate(thread_num):
 sess = requests.session()
 utils.login(sess)
 
-for i in range(config.num_signal_threads,10):
-    _thread.start_new_thread(combo_simulate, (i + 1,))
+combo_simulate(1)
+# for i in range(config.num_signal_threads,10):
+#     _thread.start_new_thread(combo_simulate, (i + 1,))
 
-while 1:
-    pass
+# while 1:
+#     pass
 

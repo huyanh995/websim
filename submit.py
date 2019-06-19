@@ -4,13 +4,11 @@ import time
 import threading
 import traceback
 import random
-from common import config, utils
-#from recheck import *
+from common import config, utils, stuff
 import mysql.connector as mysql
 
 from datetime import datetime, timedelta
 import pytz
-
 # Submit file. It is not the necessary part of the project. But I wrote it when my code is not ready to use (in beta test)
 
 headers = {
@@ -25,12 +23,10 @@ def submit_alpha(alpha_id, sess):
     submit_url = 'https://api.worldquantvrc.com/alphas/{}/submit'.format(alpha_id)
     print("SUBMITTING Alpha ID: {}".format(alpha_id))
     try:
-        initial = sess.post(submit_url)
-        print("INITIAL: " + str(initial.text))
+        sess.post(submit_url)
         while tried_time < max_tried_time:
             response = sess.get(submit_url) # POST lan 1, cac lan sau GET.
-            print("RESPONSE {}: ".format(tried_time) + str(response.text))
-            if utils.ERRORS(sess, response.text):
+            if utils.ERRORS(sess, response.text, "submit_alpha"):
                 time.sleep(1)
             elif 'checks' in response.text:
                 if 'FAIL' in response.text:
@@ -160,19 +156,6 @@ def auto_submit(mode, num_today, sess):
         trace_msg = traceback.format_exception(etype=type(ex), value=ex, tb=ex.__traceback__)
         utils.db_insert_log("auto_submit",str(trace_msg), "")
 
-def num_alpha_submitted(day, sess):
-    try:
-        os_url = 'https://api.worldquantvrc.com/users/self/alphas?limit=15&offset=0&stage=OS%1fPROD&order=-dateSubmitted&hidden=false'
-        response = sess.get(os_url)
-        res_os = json.loads(response.content)["results"]
-        num_alpha_submitted = 0
-        for alpha in res_os:
-            if day in alpha["dateSubmitted"]:
-                num_alpha_submitted = num_alpha_submitted + 1
-        return num_alpha_submitted
-    except Exception as ex:
-        trace_msg = traceback.format_exception(etype=type(ex), value=ex, tb=ex.__traceback__)
-        utils.db_insert_log("num_alpha_submitted",str(trace_msg), response.text)
 
 
 #### EXECUTE ######
@@ -182,7 +165,7 @@ utils.login(sess)
 
 websim_time = datetime.now(pytz.timezone('EST5EDT'))
 day_ws_time = str(websim_time).split(" ")[0]
-num_today = num_alpha_submitted(day_ws_time, sess)
+num_today = stuff.num_alpha_submitted(day_ws_time, sess)
 
 print("\nAUTO SUBMIT ALPHAS\n")
 print("WorldQuant Time: " + str(websim_time).split(".")[0])
@@ -198,12 +181,20 @@ else:
     print("=============================================")
     auto_submit(mode, num_today, sess)
 
-# print("=============================================")
-# answer = str(input("Do you want to run re-check process (Y/N): "))
-# answers = ["Y", "y", "N", "n"]
-# assert(answer in answers)
-# if answer == "Y" or answer == "y":
-#     re_check(sess)
-# else:
-#     print("GOOD BYE!")
+print("=============================================")
+answer = str(input("Do you want to run re-check process (Y/N): "))
+answers = ["Y", "y", "N", "n"]
+assert(answer in answers)
+if answer == "Y" or answer == "y":
+    input = input("Number of qualified alphas (Default: 15): ")
+    if input == "":
+        stuff.re_check(sess) # Default
+    elif input == "all":
+        stuff.re_check_all(sess) # Check all combos
+    else:
+        qual_num = int(input)
+        stuff.re_check(sess, qual_num)
+    print("==============================")
+else:
+    print("GOOD BYE!")
 

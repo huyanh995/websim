@@ -5,7 +5,7 @@ USE websim;
 CREATE TABLE combo (
     alpha_id VARCHAR(10) PRIMARY KEY NOT NULL,
     created_at DATE,
-    alpha_code VARCHAR(3000),
+    alpha_code VARCHAR(10000),
     settings VARCHAR(1000),
     sharpe FLOAT,
     fitness FLOAT,
@@ -46,7 +46,7 @@ CREATE TABLE submitted (
     alpha_id VARCHAR(10) PRIMARY KEY NOT NULL,
     created_at DATE,
     submitted_at DATE,
-    alpha_code VARCHAR(3000),
+    alpha_code VARCHAR(10000),
     settings VARCHAR(1000),
     sharpe FLOAT,
     fitness FLOAT,
@@ -89,3 +89,5 @@ CREATE TABLE count_use (
     no3 INT
 );
 
+ALTER TABLE submitted MODIFY COLUMN alpha_code VARCHAR(10000);
+ALTER TABLE combo MODIFY COLUMN alpha_code VARCHAR(10000);
