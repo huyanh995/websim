@@ -80,8 +80,10 @@ def signal_simulate(thread_num):
                         print("Thread {}: Alpha {}: Not enough performance".format(thread_num, alpha_id))
         except Exception as ex:
             trace_msg = traceback.format_exception(etype=type(ex), value=ex, tb=ex.__traceback__)
-            utils.db_insert_log("signal_simulate", str(trace_msg), str(alpha_ids)+" - "+type(alpha_ids)+" : " + str(num1)+ " : " + str(num2) + " : " + str(num3))               
-
+            if 'alpha_ids' in locals() or 'alpha_ids' in globals():
+                utils.db_insert_log("signal_simulate", str(trace_msg), str(alpha_ids)+" - "+ str(type(alpha_ids)) +" : " + str(num1)+ " : " + str(num2) + " : " + str(num3))               
+            else:
+                utils.db_insert_log("signal_simulate", str(trace_msg), "")
 
 sess = requests.session()
 utils.login(sess)
