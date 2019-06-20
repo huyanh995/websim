@@ -87,10 +87,10 @@ def combo_simulate(thread_num):
 sess = requests.session()
 utils.login(sess)
 
-combo_simulate(1)
-# for i in range(config.num_signal_threads,10):
-#     _thread.start_new_thread(combo_simulate, (i + 1,))
+#combo_simulate(1)
+for i in range(config.num_combo_threads):
+    _thread.start_new_thread(combo_simulate, (i + 1,))
 
-# while 1:
-#     pass
+while 1:
+    pass
 

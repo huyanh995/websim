@@ -28,5 +28,5 @@ while True:
         f.write(str(current_time)+ "     " + str(is_sum)+ "     " + str(diff) + '\n')
         print("RECORDED")
     start = start + 1
-    time.sleep(0.5 * 60)
+    time.sleep(5 * 60)
  

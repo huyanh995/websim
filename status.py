@@ -17,16 +17,25 @@ utils.login(sess)
 websim_time = datetime.now(pytz.timezone('EST5EDT'))
 day_ws_time = str(websim_time).split(" ")[0]
 yesterday, this_month, total = stuff.get_payout(sess)
+num_days = int(day_ws_time.split("-")[-1])
+if num_days > 1:
+    if yesterday != 0:
+        average = round(this_month / num_days,2)
+    else:
+        average = round(this_month / (num_days-1), 2)
+else:
+    average = yesterday
 is_sum, os_sum, prod_sum = stuff.get_summary(sess)
 num_today = stuff.num_alpha_submitted(day_ws_time, sess)
 messages = stuff.get_ann(sess)
 print("\nTODAY STATUS (" + str(day_ws_time)+")")
 
-print("\nPAYOUT")
+print("\nPAYOUT       $"+str(yesterday))
 print("----------------------------------")
-print("Yesterday:   " + "$"+str(yesterday))
+print("Average:     " + "$"+str(average))
 print("This month:  " + "$"+str(this_month))
 print("Total:       " + "$"+str(total))
+
 
 print("\nALPHAS       {}/5".format(num_today))
 print("----------------------------------")

@@ -138,3 +138,7 @@ def re_check_all(sess):
     except Exception as ex:
         trace_msg = traceback.format_exception(etype=type(ex), value=ex, tb=ex.__traceback__)
         utils.db_insert_log("re_check_all",str(trace_msg), "")
+
+
+
+    
