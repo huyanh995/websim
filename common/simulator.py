@@ -14,10 +14,11 @@ import mysql.connector as mysql
 from datetime import datetime
 
 login_url = "https://api.worldquantvrc.com/authentication"
-sim_url = "https://api.worldquantvrc.com/simulations"
+job_sim_url = "https://api.worldquantvrc.com/simulations"
+sim_url = "https://api.worldquantvrc.com/simulations/{}"
 myalpha_url = "https://api.worldquantvrc.com/users/self/alphas"
 alpha_url = "https://api.worldquantvrc.com/alphas/"
-#submit_url = "https://api.worldquantvrc.com/alphas/"+alpha_id+"/submit"
+
 
 headers = {
     'content-type': 'application/json'
@@ -44,9 +45,10 @@ def simulate_alpha(sess, alpha_code, top, region, thread_num):
             # POST request to server to get Job ID (It's different ID, to get Alpha ID in futher)
             print("Thread {}: SIMULATING: ".format(thread_num) + str(alpha_code))
             job_response = sess.post(
-                sim_url, data=json.dumps(payload), headers=headers)
+                job_sim_url, data=json.dumps(payload), headers=headers)
             # Get JSON string from server
             if 'SIMULATION_LIMIT_EXCEED' in job_response.text:
+                db_insert_log("simulate_alpha", "SIMULATION_LIMIT_EXCEED", str(job_response) )
                 time.sleep(3)
             elif ERRORS(sess, job_response.text, "simulate_alpha_1"):
                 time.sleep(1)
@@ -55,10 +57,10 @@ def simulate_alpha(sess, alpha_code, top, region, thread_num):
             elif "b\'\'" in job_response.text:
                 time.sleep(1.0)
             else: 
-                job_id = job_response.headers["Location"].split("/")[-1]
+                job_id = job_response.headers["location"].split("/")[-1]
                 try:
                     while tried_res_time < 10*max_tried_times:
-                        sim_alpha_url = sim_url + "/" + str(job_id)
+                        sim_alpha_url = sim_url.format(job_id) ## + "/" + str(job_id)
                         alpha_response = sess.get(
                             sim_alpha_url, data="", headers=headers)
                         print("{}: ".format(tried_res_time) + str(alpha_response))
@@ -107,10 +109,11 @@ def multi_simulate(sess, alpha_codes, top, region, thread_num):
                 # POST request to server to get Job ID (It's different ID, to get Alpha ID in futher)
                 print("Thread {}: SIMULATING: ".format(thread_num) + str(alpha_code))
             job_response = sess.post(
-                sim_url, data=json.dumps(payload), headers=headers)
+                job_sim_url, data=json.dumps(payload), headers=headers)
             #print("1ST STEP: " + str(job_response.headers))
             # Get JSON string from server
             if 'SIMULATION_LIMIT_EXCEED' in job_response.text:
+                db_insert_log("multi_simulate_1", "SIMULATION_LIMIT_EXCEED", str(job_response) )
                 time.sleep(3)
             elif ERRORS(sess, job_response.text, "multi_simulate_1"):
                 time.sleep(1)
@@ -119,13 +122,14 @@ def multi_simulate(sess, alpha_codes, top, region, thread_num):
             # No elif ERRORS in here because while API is processing, the response is b' ' which included in ERRORs >> So it'll be stuck in there. 
             # Maybe separate blank response from server in another function (Test it later) 
             else: 
-                parent_job_id = job_response.headers["Location"].split("/")[-1]
+                parent_job_id = job_response.headers["location"].split("/")[-1]
                 #print("PARENT ID: " + str(parent_job_id))
                 while tried_step2_time < 5*max_tried_times:
-                    sim_job_url = sim_url + "/" + str(parent_job_id)
+                    sim_job_url = sim_url.format(parent_job_id) # + "/" + str(parent_job_id)
                     sim_job_response = sess.get(sim_job_url, data="", headers = headers)
                     #print("2ND STEP: " + str(sim_job_response.text))
                     if 'SIMULATION_LIMIT_EXCEED' in job_response.text:
+                        db_insert_log("multi_simulate", "SIMULATION_LIMIT_EXCEED", sim_job_response.text)
                         time.sleep(3)
                     elif "progress" in sim_job_response.text:
                         time.sleep(1.0)
@@ -137,7 +141,7 @@ def multi_simulate(sess, alpha_codes, top, region, thread_num):
                         for job_id in children_job_ids:
                             try:
                                 while tried_res_time < 10*max_tried_times:
-                                    sim_alpha_url = sim_url + "/" + str(job_id)
+                                    sim_alpha_url = sim_url.format(job_id) # + "/" + str(job_id)
                                     alpha_response = sess.get(
                                         sim_alpha_url, data="", headers=headers)
                                     if ERRORS(sess, alpha_response.text, "multi_simulate_2"):
@@ -166,7 +170,10 @@ def multi_simulate(sess, alpha_codes, top, region, thread_num):
         return None, tried_step1_time, tried_step2_time, tried_res_time
     except Exception as ex:
         trace_msg = traceback.format_exception(etype=type(ex), value=ex, tb=ex.__traceback__)
-        db_insert_log("multi_simulate", str(trace_msg), "Job_ID :"+job_response.text)
+        if 'sim_job_response' in locals() or 'sim_job_response' in globals():
+            db_insert_log("multi_simulate", str(trace_msg), "Job_ID :"+job_response.text + "SIM_JOB_RES: " + str(sim_job_response))
+        else:
+            db_insert_log("multi_simulate", str(trace_msg), "Job_ID :"+job_response.text)
 
 
 

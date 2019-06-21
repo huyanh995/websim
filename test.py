@@ -1,7 +1,7 @@
 import requests
 import json
 import traceback
-from common import utils, config
+from common import utils, config, stuff
 from datetime import datetime, timedelta
 import mysql.connector as mysql
 import pytz
@@ -29,22 +29,27 @@ import pytz
 sess = requests.session()
 utils.login(sess)
 
-response = sess.get('https://api.worldquantvrc.com/users/self/alphas?limit=30&offset=0&stage=IS&name~potential&order=-is.fitness&hidden=false')
-info_res_json = json.loads(response.content)
-results = info_res_json["results"]
-for result in results:
-    if result["grade"] == 'SPECTACULAR' or result["grade"] == 'EXCELLENT':
-        alpha_id = result["id"]
-        alpha_info = utils.get_alpha_info(alpha_id, sess)
-        test, selfcorr, prodcorr, _ = utils.check_submission(alpha_id, sess)
-        print(str(test)+" : "+str(selfcorr)+" : "+str(prodcorr))
-        if test == True:
-            alpha_info["self_corr"] = selfcorr
-            alpha_info["prod_corr"] = prodcorr
-            utils.db_insert_combo(alpha_info)
-            utils.change_name(alpha_id, sess, name = "can_submit")
-        else:
-            utils.change_name(alpha_id, sess, name = "failed")
-    else:
-        utils.change_name(alpha_id, sess, name = "anonymous")
+# response = sess.get('https://api.worldquantvrc.com/users/self/alphas?limit=30&offset=0&stage=IS&name~potential&order=-is.fitness&hidden=false')
+# info_res_json = json.loads(response.content)
+# results = info_res_json["results"]
+# for result in results:
+#     if result["grade"] == 'SPECTACULAR' or result["grade"] == 'EXCELLENT':
+#         alpha_id = result["id"]
+#         alpha_info = utils.get_alpha_info(alpha_id, sess)
+#         test, selfcorr, prodcorr, _ = utils.check_submission(alpha_id, sess)
+#         print(str(test)+" : "+str(selfcorr)+" : "+str(prodcorr))
+#         if test == True:
+#             alpha_info["self_corr"] = selfcorr
+#             alpha_info["prod_corr"] = prodcorr
+#             utils.db_insert_combo(alpha_info)
+#             utils.change_name(alpha_id, sess, name = "can_submit")
+#         else:
+#             utils.change_name(alpha_id, sess, name = "failed")
+#     else:
+#         utils.change_name(alpha_id, sess, name = "anonymous")
+top = 'TOP1500'
+region = 'ASI'
+alpha_code = 'open-5'
 
+# from common import simulator
+# simulator.simulate_alpha(sess, alpha_code, top, region, 1)

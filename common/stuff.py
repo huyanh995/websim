@@ -139,6 +139,25 @@ def re_check_all(sess):
         trace_msg = traceback.format_exception(etype=type(ex), value=ex, tb=ex.__traceback__)
         utils.db_insert_log("re_check_all",str(trace_msg), "")
 
-
-
+def get_db_stat(day_ws_time):
+    try:
+        num_signal_query = 'SELECT COUNT(*) FROM signals WHERE self_corr > 0 OR prod_corr > 0'
+        num_combo_query = 'SELECT COUNT(*) FROM combo WHERE self_corr > 0 OR prod_corr > 0'
+        db = mysql.connect(**config.config_db)
+        cursor = db.cursor()
+        cursor.execute(num_signal_query)
+        num_signal = cursor.fetchall()[0][0]
+        cursor.execute(num_combo_query)
+        num_combo = cursor.fetchall()[0][0]
+        diff_signal_query = 'SELECT COUNT(*) FROM signals WHERE created_at = \'{}\''.format(day_ws_time)
+        cursor.execute(diff_signal_query)
+        diff_signal = cursor.fetchall()[0][0]
+        diff_combo_query = 'SELECT COUNT(*) FROM combo WHERE created_at = \'{}\''.format(day_ws_time)
+        cursor.execute(diff_combo_query)
+        diff_combo = cursor.fetchall()[0][0]
+        db.close()
+        return num_signal, num_combo, diff_signal, diff_combo
+    except Exception as ex:
+        trace_msg = traceback.format_exception(etype=type(ex), value=ex, tb=ex.__traceback__)
+        utils.db_insert_log("STAT: ", str(trace_msg), "")
     

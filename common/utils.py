@@ -12,7 +12,8 @@ from datetime import datetime
 login_url = "https://api.worldquantvrc.com/authentication"
 sim_url = "https://api.worldquantvrc.com/simulations"
 myalpha_url = "https://api.worldquantvrc.com/users/self/alphas"
-alpha_url = "https://api.worldquantvrc.com/alphas/"
+alpha_url = "https://api.worldquantvrc.com/alphas/{}"
+corr_url = "https://api.worldquantvrc.com/alphas/{}/correlations/{}"
 headers = {
     'content-type': 'application/json'
 }
@@ -237,8 +238,9 @@ def check_prodcorr(alpha_id, sess):
     # print("Check product correlation alpha id: "+str(alpha_id)) # For testing only
     while tried_times < max_tried_times:
         try:
-            check_prodcorr_url = "https://api.worldquantvrc.com/alphas/" + \
-                str(alpha_id) + "/correlations/prod"
+            #check_prodcorr_url = "https://api.worldquantvrc.com/alphas/" + \
+            #    str(alpha_id) + "/correlations/prod"
+            check_prodcorr_url = corr_url.format(alpha_id, "prod")
             response = sess.get(check_prodcorr_url, data="", headers=headers)
             if ERRORS(sess, response.text, "check_prodcorr"):
                 time.sleep(1)
@@ -273,16 +275,21 @@ def check_selfcorr(alpha_id, sess):
     print("Check self correlation alpha id: "+str(alpha_id))
     while tried_times < max_tried_time:
         try:
-            check_selfcorr_url = "https://api.worldquantvrc.com/alphas/" + \
-                alpha_id + "/correlations/self"
+            #check_selfcorr_url = "https://api.worldquantvrc.com/alphas/" + \
+            #    alpha_id + "/correlations/self"
+            check_selfcorr_url = corr_url.format(alpha_id, "self")
             response = sess.get(check_selfcorr_url, data="", headers=headers)
             if ERRORS(sess, response.text, "check_selfcorr"):
                 time.sleep(1)
             elif "selfCorrelation" in response.text:
                 print("Tried times: "+str(tried_times))
-                self_corr = json.loads(response.content)["records"][0][5]
-                db_insert_count("check_prod", tried_times, -1, -1)
-                return self_corr
+                self_corr_list = json.loads(response.content)["records"]
+                if len(self_corr_list) > 0:
+                    self_corr = self_corr_list[0][5]
+                    db_insert_count("check_self", tried_times, -1, -1)
+                    return self_corr
+                else:
+                    self_corr = -1
             time.sleep(1.0)
             tried_times = tried_times + 1
         # except ConnectionError:
@@ -363,10 +370,10 @@ def get_alpha_info(alpha_id, sess):
     tried_time = 1
     try:
         while tried_time < max_tried_time:
-            alpha_url_info = alpha_url + str(alpha_id)
+            alpha_url_info = alpha_url.format(alpha_id)# + str(alpha_id)
             response = sess.get(alpha_url_info, data="", headers=headers)
             alpha_res_json = json.loads(response.content)
-            if ERRORS(sess, str(response.text) + str(alpha_id), "get_alpha_info"):
+            if ERRORS(sess, response.text, "get_alpha_info"):
                 time.sleep(1)
             elif alpha_id in str(alpha_res_json):
                 alpha_info = {}
@@ -425,7 +432,7 @@ def hide_alpha(alpha_id, sess):
     # Hide alphas those are not qualified tested or not good enough to use
     # Using alpha id as determined value
     try:
-        url = alpha_url + str(alpha_id)
+        url = alpha_url.format(alpha_id)# + str(alpha_id)
         payload = "{ \"hidden\":true}"
         response = sess.patch(url, data=payload, headers=headers)
         # print(response.text) # For testing only
@@ -436,7 +443,7 @@ def hide_alpha(alpha_id, sess):
 
 def change_name(alpha_id, sess, name="anonymous"):
     # Change name of an alpha. If name = None, websim automatically change it to anonymous
-    meta_url = alpha_url + str(alpha_id)
+    meta_url = alpha_url.format(alpha_id) #+ str(alpha_id)
     data = {"color": None, "name": name, "tags": [],
             "category": None, "description": None}
     try:
