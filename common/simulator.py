@@ -110,6 +110,7 @@ def multi_simulate(sess, alpha_codes, top, region, thread_num):
                 print("Thread {}: SIMULATING: ".format(thread_num) + str(alpha_code))
             job_response = sess.post(
                 job_sim_url, data=json.dumps(payload), headers=headers)
+            print("INITIAL: " + str(job_response))
             #print("1ST STEP: " + str(job_response.headers))
             # Get JSON string from server
             if 'SIMULATION_LIMIT_EXCEED' in job_response.text:
@@ -127,6 +128,7 @@ def multi_simulate(sess, alpha_codes, top, region, thread_num):
                 while tried_step2_time < 5*max_tried_times:
                     sim_job_url = sim_url.format(parent_job_id) # + "/" + str(parent_job_id)
                     sim_job_response = sess.get(sim_job_url, data="", headers = headers)
+                    print("RESPONSE JOB: "+str(sim_job_response))
                     #print("2ND STEP: " + str(sim_job_response.text))
                     if 'SIMULATION_LIMIT_EXCEED' in job_response.text:
                         db_insert_log("multi_simulate", "SIMULATION_LIMIT_EXCEED", sim_job_response.text)
@@ -144,6 +146,7 @@ def multi_simulate(sess, alpha_codes, top, region, thread_num):
                                     sim_alpha_url = sim_url.format(job_id) # + "/" + str(job_id)
                                     alpha_response = sess.get(
                                         sim_alpha_url, data="", headers=headers)
+                                    print("RESPONSE ALPHA: " + str(alpha_response))
                                     if ERRORS(sess, alpha_response.text, "multi_simulate_2"):
                                         time.sleep(1)
                                     elif job_id in alpha_response.text: # Condition to know the simulation process is done. Maybe you will find a better solution.

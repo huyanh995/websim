@@ -61,6 +61,7 @@ def signal_simulate(thread_num):
             alpha_codes = signal_generator.get_alphas(data)
             alpha_ids, num1, num2, num3 = simulator.multi_simulate(sess, alpha_codes, top, region, thread_num)
             if alpha_ids != None:
+                print("ALPHA_IDS :" + str(alpha_ids))
                 for alpha_id in alpha_ids: # Error in here (alphas_ids = None, exceed limit tried times.)
                     results = utils.get_alpha_info(alpha_id, sess)
                     if results["weight_test"] == 'FAIL':
