@@ -15,7 +15,8 @@ myalpha_url = "https://api.worldquantvrc.com/users/self/alphas"
 alpha_url = "https://api.worldquantvrc.com/alphas/{}"
 corr_url = "https://api.worldquantvrc.com/alphas/{}/correlations/{}"
 headers = {
-    'content-type': 'application/json'
+    'content-type': 'application/json',
+    'User-Agent' : 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.169 Safari/537.36'
 }
 ################## ERROR Function
 
@@ -375,10 +376,10 @@ def get_alpha_info(alpha_id, sess):
         while tried_time < max_tried_time:
             alpha_url_info = alpha_url.format(alpha_id)# + str(alpha_id)
             response = sess.get(alpha_url_info, data="", headers=headers)
-            alpha_res_json = json.loads(response.content)
             if ERRORS(sess, response.text, "get_alpha_info"):
                 time.sleep(1)
-            elif alpha_id in str(alpha_res_json):
+            elif alpha_id in response.text:
+                alpha_res_json = json.loads(response.content)
                 alpha_info = {}
                 alpha_info["alpha_id"] = alpha_res_json["id"]
                 alpha_info["create_day"] = str(
@@ -422,7 +423,7 @@ def get_alpha_info(alpha_id, sess):
     #     return None
     except Exception as ex:
         trace_msg = traceback.format_exception(etype=type(ex), value=ex, tb=ex.__traceback__)
-        db_insert_log("get_alpha_info",str(trace_msg), response.text)
+        db_insert_log("get_alpha_info",str(trace_msg), response.text + str(alpha_id))
         return None
 
 

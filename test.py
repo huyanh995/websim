@@ -47,9 +47,15 @@ utils.login(sess)
 #             utils.change_name(alpha_id, sess, name = "failed")
 #     else:
 #         utils.change_name(alpha_id, sess, name = "anonymous")
-top = 'TOP1500'
-region = 'ASI'
-alpha_code = 'open-5'
 
-# from common import simulator
-# simulator.simulate_alpha(sess, alpha_code, top, region, 1)
+url = utils.alpha_url.format("XwXWLOX")
+# print(url)
+# response = sess.get(url)
+# print(response.content)
+
+response = requests.get(url)
+if response.status_code == 401:
+    print("Tada")
+else:
+    print("Oops")
+print(response.text)
