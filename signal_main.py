@@ -89,12 +89,11 @@ def signal_simulate(thread_num):
 sess = requests.session()
 utils.login(sess)
 
-signal_simulate(1)
-# for i in range(config.num_signal_threads):
-#     _thread.start_new_thread(signal_simulate, (i + 1,))
+for i in range(config.num_signal_threads):
+    _thread.start_new_thread(signal_simulate, (i + 1,))
 
-# while 1:
-#     pass
+while 1:
+    pass
 
 
 

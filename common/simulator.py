@@ -125,7 +125,6 @@ def multi_simulate(sess, alpha_codes, top, region, thread_num):
                     sim_job_url = sim_url.format(parent_job_id)
                     sim_job_response = sess.get(sim_job_url, data="", headers = headers)
                     exp_log = exp_log + str(sim_job_response.status_code) + " : " + sim_job_response.text + " : " + str(sim_job_response.headers)
-                    print(exp_log)
                     print("RESPONSE JOB {}: ".format(tried_step2_time) + str(sim_job_response))
                     if 'SIMULATION_LIMIT_EXCEED' in job_response.text:
                         db_insert_log("multi_simulate", "SIMULATION_LIMIT_EXCEED", sim_job_response.text)
