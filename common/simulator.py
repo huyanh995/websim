@@ -34,7 +34,7 @@ def simulate_alpha(sess, alpha_code, top, region, thread_num):
     # Simulate alpha (mostly use for combos). Input alpha, universe and region.
     # For combo simulation, alphas have fitness > 1.25, sharpe > 2 and corr < determined values are called signals.
     #max_tried_times = 10
-    max_tried_times = 1000
+    max_tried_times = 15
     # First step: POST request to get Job ID, if there're 10 simulteneously threads, wait 3 seconds and re-send.
     tried_sim_time = 1  # For 1st step
     # Second step: After get Job ID, GET request to get Alpha ID
@@ -58,7 +58,7 @@ def simulate_alpha(sess, alpha_code, top, region, thread_num):
             else: 
                 job_id = job_response.headers["location"].split("/")[-1]
                 try:
-                    while tried_res_time < 10*max_tried_times:
+                    while tried_res_time < 50*max_tried_times:
                         sim_alpha_url = sim_url.format(job_id) 
                         alpha_response = sess.get(
                             sim_alpha_url, data="", headers=headers)
@@ -71,7 +71,6 @@ def simulate_alpha(sess, alpha_code, top, region, thread_num):
                                 if alpha_res_json["status"] == 'COMPLETE' or alpha_res_json["status"] == "WARNING":
                                     alpha_id = json.loads(alpha_response.content)["alpha"]
                                     print("Thread {}: DONE: ".format(thread_num)+str(alpha_id))
-                                    db_insert_count("simulate_alpha",tried_sim_time, tried_res_time, -1)
                                     return alpha_id
                                 else:
                                     return None
@@ -92,7 +91,7 @@ def simulate_alpha(sess, alpha_code, top, region, thread_num):
 def multi_simulate(sess, alpha_codes, top, region, thread_num):
     # Simulate alpha (mostly use for signals). Input alpha, universe and region.
     # For signals simulation, alphas have fitness > 0.7, sharpe > 0.7 and corr < determined values are called signals.
-    max_tried_times = 1000
+    max_tried_times = 15
     # First step: POST request to get Job ID, if there're 10 simulteneously threads, wait 3 seconds and re-send.
     # Fofr multi or batch simulate, the results will be list of Job_ID.
     tried_step1_time = 1  # For 1st step
@@ -100,7 +99,7 @@ def multi_simulate(sess, alpha_codes, top, region, thread_num):
     # Second step: After get parent Job_ID contains children Job_IDs, get Alpha_ID.
     tried_res_time = 1  # For 3rd step
     try:
-        while tried_step1_time < 3*max_tried_times:
+        while tried_step1_time < max_tried_times:
             payload = []
             for alpha_code in alpha_codes:
                 payload.append({"type": "SIMULATE", "settings": {"nanHandling": "OFF", "instrumentType": "EQUITY", "delay": 1, "universe": top, "truncation": 0.08, "unitHandling": "VERIFY",
@@ -120,7 +119,7 @@ def multi_simulate(sess, alpha_codes, top, region, thread_num):
                 time.sleep(1.0)
             else: 
                 parent_job_id = job_response.headers["location"].split("/")[-1]
-                while tried_step2_time < 5*max_tried_times:
+                while tried_step2_time < 30*max_tried_times:
                     sim_job_url = sim_url.format(parent_job_id)
                     sim_job_response = sess.get(sim_job_url, data="", headers = headers)
                     print("RESPONSE JOB {}: ".format(tried_step2_time) + str(sim_job_response))
@@ -137,7 +136,7 @@ def multi_simulate(sess, alpha_codes, top, region, thread_num):
                         alpha_ids = []
                         for job_id in children_job_ids:
                             try:
-                                while tried_res_time < 10*max_tried_times:
+                                while tried_res_time < max_tried_times:
                                     sim_alpha_url = sim_url.format(job_id) 
                                     alpha_response = sess.get(
                                         sim_alpha_url, data="", headers=headers)
@@ -152,19 +151,18 @@ def multi_simulate(sess, alpha_codes, top, region, thread_num):
                                             print("Thread {}: DONE: ".format(thread_num)+str(alpha_id))
                                             break
                                         else:
-                                            return None, tried_step1_time, tried_step2_time, tried_res_time
+                                            return None
                                     else:                                          
                                         time.sleep(1.0)
                                         tried_res_time = tried_res_time + 1
                             except Exception as ex_alpha:
                                 trace_msg_alpha = traceback.format_exception(etype=type(ex_alpha), value=ex_alpha, tb=ex_alpha.__traceback__)
                                 db_insert_log("multi_simulate",str(trace_msg_alpha), "Job_ID :"+job_response.text+"\nAlpha_ID :"+alpha_response.text)
-                        db_insert_count("multi_simulate",tried_step1_time, tried_step2_time, tried_res_time)
-                        return alpha_ids, tried_step1_time, tried_step2_time, tried_res_time
+                        return alpha_ids # Return results
             time.sleep(1.0)
             tried_step1_time = tried_step1_time + 1
         db_insert_count("multi_simulate",tried_step1_time, tried_step2_time, tried_res_time)
-        return None, tried_step1_time, tried_step2_time, tried_res_time
+        return None
     except Exception as ex:
         trace_msg = traceback.format_exception(etype=type(ex), value=ex, tb=ex.__traceback__)
         if 'sim_job_response' in locals() or 'sim_job_response' in globals():

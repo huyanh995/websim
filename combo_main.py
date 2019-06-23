@@ -64,7 +64,7 @@ def combo_simulate(thread_num):
             if alpha_id != None:
                 alpha_info = utils.get_alpha_info(alpha_id, sess)
                 if alpha_info["sharpe"] >= config.min_combo[0] and alpha_info["fitness"] >= config.min_combo[1]:
-                    result, selfcorr, prodcorr, _ = utils.check_submission(alpha_id, sess)
+                    result, selfcorr, prodcorr = utils.check_submission(alpha_id, sess)
                     print(result)
                     if result == True and max(selfcorr, prodcorr) <= config.min_combo[2]: 
                         alpha_info["self_corr"] = selfcorr

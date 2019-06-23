@@ -48,14 +48,9 @@ utils.login(sess)
 #     else:
 #         utils.change_name(alpha_id, sess, name = "anonymous")
 
-url = utils.alpha_url.format("XwXWLOX")
+
 # print(url)
 # response = sess.get(url)
 # print(response.content)
 
-response = requests.get(url)
-if response.status_code == 401:
-    print("Tada")
-else:
-    print("Oops")
-print(response.text)
+print(utils.get_alpha_info("XwXeOgz", sess))

@@ -57,12 +57,12 @@ print("Apply theme: {}".format(answer)+"\n")
 
 def signal_simulate(thread_num):
     while True:
-        try:      
+        try:
             alpha_codes = signal_generator.get_alphas(data)
-            alpha_ids, num1, num2, num3 = simulator.multi_simulate(sess, alpha_codes, top, region, thread_num)
+            alpha_ids = simulator.multi_simulate(sess, alpha_codes, top, region, thread_num)
             if alpha_ids != None:
                 print("ALPHA_IDS :" + str(alpha_ids))
-                for alpha_id in alpha_ids: # Error in here (alphas_ids = None, exceed limit tried times.)
+                for alpha_id in alpha_ids:
                     results = utils.get_alpha_info(alpha_id, sess)
                     if results["weight_test"] == 'FAIL':
                         print("Thread {}: Alpha {}: Not enough performance".format(thread_num, alpha_id))
@@ -82,7 +82,7 @@ def signal_simulate(thread_num):
         except Exception as ex:
             trace_msg = traceback.format_exception(etype=type(ex), value=ex, tb=ex.__traceback__)
             if 'alpha_ids' in locals() or 'alpha_ids' in globals():
-                utils.db_insert_log("signal_simulate", str(trace_msg), str(alpha_ids)+" - "+ str(type(alpha_ids)) +" : " + str(num1)+ " : " + str(num2) + " : " + str(num3))               
+                utils.db_insert_log("signal_simulate", str(trace_msg), str(alpha_ids)+" - "+ str(type(alpha_ids)))               
             else:
                 utils.db_insert_log("signal_simulate", str(trace_msg), "")
 

@@ -14,6 +14,7 @@ sim_url = "https://api.worldquantvrc.com/simulations"
 myalpha_url = "https://api.worldquantvrc.com/users/self/alphas"
 alpha_url = "https://api.worldquantvrc.com/alphas/{}"
 corr_url = "https://api.worldquantvrc.com/alphas/{}/correlations/{}"
+check_sub_url = "https://api.worldquantvrc.com/alphas/{}/check"
 headers = {
     'content-type': 'application/json',
     'User-Agent' : 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.169 Safari/537.36'
@@ -239,8 +240,6 @@ def check_prodcorr(alpha_id, sess):
     # print("Check product correlation alpha id: "+str(alpha_id)) # For testing only
     while tried_times < max_tried_times:
         try:
-            #check_prodcorr_url = "https://api.worldquantvrc.com/alphas/" + \
-            #    str(alpha_id) + "/correlations/prod"
             check_prodcorr_url = corr_url.format(alpha_id, "prod")
             response = sess.get(check_prodcorr_url, data="", headers=headers)
             if ERRORS(sess, response.text, "check_prodcorr"):
@@ -259,9 +258,6 @@ def check_prodcorr(alpha_id, sess):
                     prod_corr = -1
             time.sleep(1.0) # Delayed time between requests.
             tried_times = tried_times + 1
-        # except ConnectionError:
-        #     print('CONNECTION LOST!')
-        #     time.sleep(20)
         except Exception as ex:
             trace_msg = traceback.format_exception(etype=type(ex), value=ex, tb=ex.__traceback__)
             db_insert_log("check_prodcorr",str(trace_msg), response.text)
@@ -279,8 +275,6 @@ def check_selfcorr(alpha_id, sess):
     print("Check self correlation alpha id: "+str(alpha_id))
     while tried_times < max_tried_time:
         try:
-            #check_selfcorr_url = "https://api.worldquantvrc.com/alphas/" + \
-            #    alpha_id + "/correlations/self"
             check_selfcorr_url = corr_url.format(alpha_id, "self")
             response = sess.get(check_selfcorr_url, data="", headers=headers)
             if ERRORS(sess, response.text, "check_selfcorr"):
@@ -296,8 +290,6 @@ def check_selfcorr(alpha_id, sess):
                     self_corr = -1
             time.sleep(1.0)
             tried_times = tried_times + 1
-        # except ConnectionError:
-        #     print('CONNECTION LOST!')
         except Exception as ex:
             trace_msg = traceback.format_exception(etype=type(ex), value=ex, tb=ex.__traceback__)
             db_insert_log("check_selfcorr",str(trace_msg), response.text)
@@ -315,19 +307,17 @@ def check_submission(alpha_id, sess):
     # If an alpha failed one of the tests > Return False, -1, -1 (Self/Prod Corr are in range of 0 to 1)
     # If after 15 times, the test is not completed or have any exception > Return True, -1, -1. This values mean
     # the alpha is considered re-run the test in the future.
-    #max_tried_times = 150
-    max_tried_times = 1000
+    max_tried_times = 650
     tried_times = 1
     print("Check submission tests alpha id: "+str(alpha_id))
     while tried_times < max_tried_times:
         try:
-            check_submision_url = "https://api.worldquantvrc.com/alphas/" + \
-                str(alpha_id) + "/check"
+            # check_submision_url = "https://api.worldquantvrc.com/alphas/" + \
+            #     str(alpha_id) + "/check"
+            check_submision_url = check_sub_url.format(alpha_id)
             response = sess.get(check_submision_url, data="", headers=headers)
-            # print(response.text)
             if 'FAIL' in response.text:
-                # print("FAIL") # For testing only
-                return False, -1, -1, tried_times
+                return False, -1, -1
             elif 'PENDING' in response.text:
                 time.sleep(3)
             elif ERRORS(sess, response.text, "check_submission"):
@@ -340,15 +330,15 @@ def check_submission(alpha_id, sess):
                     if check['name'] == 'PROD_CORRELATION':
                         prod_corr = check['value']
                 db_insert_count("check_submit", tried_times, -1, -1)
-                return True, self_corr, prod_corr, tried_times
+                return True, self_corr, prod_corr
             tried_times = tried_times + 1
         # except ConnectionError:
         #     time.sleep(20)
         except Exception as ex:
             trace_msg = traceback.format_exception(etype=type(ex), value=ex, tb=ex.__traceback__)
             db_insert_log("check_submission",str(trace_msg), "Response: " + str(response.text) + "Alpha_ID: " +str(alpha_id))
-            return True, -2, -2, tried_times
-    return True, -1, -1, tried_times
+            return True, -2, -2
+    return True, -1, -1
 
 
 ################## ALPHA related Function
