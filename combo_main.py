@@ -14,7 +14,7 @@ from common import config, signal_generator, simulator, utils, combo_generator
 from data import alldata
 
 
-# 2. Simulate combos: (6 threadings)
+# 2. Simulate combos: 
 # combo_generator() -> (alphas) -> simulate() -> (alpha_id) -> get_alpha_info()
 # -> (alpha_info) -> check conditions -> db_insert_signals()
 tops = ["100", "150", "200", "400", "500", "600", "800", "1000", "1200", "1500", "2000", "3000"]
@@ -87,7 +87,6 @@ def combo_simulate(thread_num):
 sess = requests.session()
 utils.login(sess)
 
-#combo_simulate(1)
 for i in range(config.num_combo_threads):
     _thread.start_new_thread(combo_simulate, (i + 1,))
 

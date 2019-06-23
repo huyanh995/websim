@@ -14,7 +14,7 @@ from common import config, signal_generator, simulator, utils
 from data import alldata
 
 
-# 1. Simulate signals: (4 threadings)
+# 1. Simulate signals: 
 # signal_generator() -> (alphas) -> simulate() -> (alpha_id) -> get_alpha_info()
 # -> (alpha_info) -> check conditions -> db_insert_signals()
 
@@ -82,19 +82,19 @@ def signal_simulate(thread_num):
         except Exception as ex:
             trace_msg = traceback.format_exception(etype=type(ex), value=ex, tb=ex.__traceback__)
             if 'alpha_ids' in locals() or 'alpha_ids' in globals():
-                utils.db_insert_log("signal_simulate", str(trace_msg), str(alpha_ids)+" - "+ str(type(alpha_ids)))               
+                utils.db_insert_log("signal_simulate", str(trace_msg), str(alpha_ids)+" - "+ str(type(alpha_ids)) + str(datetime.now()))               
             else:
                 utils.db_insert_log("signal_simulate", str(trace_msg), "")
 
 sess = requests.session()
 utils.login(sess)
 
+signal_simulate(1)
+# for i in range(config.num_signal_threads):
+#     _thread.start_new_thread(signal_simulate, (i + 1,))
 
-for i in range(config.num_signal_threads):
-    _thread.start_new_thread(signal_simulate, (i + 1,))
-
-while 1:
-    pass
+# while 1:
+#     pass
 
 
 

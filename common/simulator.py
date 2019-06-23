@@ -98,7 +98,8 @@ def multi_simulate(sess, alpha_codes, top, region, thread_num):
     tried_step2_time = 1  # For 2nd step
     # Second step: After get parent Job_ID contains children Job_IDs, get Alpha_ID.
     tried_res_time = 1  # For 3rd step
-    try:
+    exp_log = "" # For debugging connection exception
+    try: 
         while tried_step1_time < max_tried_times:
             payload = []
             for alpha_code in alpha_codes:
@@ -108,6 +109,7 @@ def multi_simulate(sess, alpha_codes, top, region, thread_num):
                 print("Thread {}: SIMULATING: ".format(thread_num) + str(alpha_code))
             job_response = sess.post(
                 job_sim_url, data=json.dumps(payload), headers=headers)
+            exp_log = exp_log + str(job_response.status_code) + " : " + job_response.text + " : " + str(job_response.headers) + " : \n"
             print("INITIAL {}:".format(tried_step1_time) + str(job_response))
             # Get JSON string from server
             if 'SIMULATION_LIMIT_EXCEED' in job_response.text:
@@ -122,6 +124,8 @@ def multi_simulate(sess, alpha_codes, top, region, thread_num):
                 while tried_step2_time < 30*max_tried_times:
                     sim_job_url = sim_url.format(parent_job_id)
                     sim_job_response = sess.get(sim_job_url, data="", headers = headers)
+                    exp_log = exp_log + str(sim_job_response.status_code) + " : " + sim_job_response.text + " : " + str(sim_job_response.headers)
+                    print(exp_log)
                     print("RESPONSE JOB {}: ".format(tried_step2_time) + str(sim_job_response))
                     if 'SIMULATION_LIMIT_EXCEED' in job_response.text:
                         db_insert_log("multi_simulate", "SIMULATION_LIMIT_EXCEED", sim_job_response.text)
@@ -166,9 +170,9 @@ def multi_simulate(sess, alpha_codes, top, region, thread_num):
     except Exception as ex:
         trace_msg = traceback.format_exception(etype=type(ex), value=ex, tb=ex.__traceback__)
         if 'sim_job_response' in locals() or 'sim_job_response' in globals():
-            db_insert_log("multi_simulate", str(trace_msg), "Job_ID :"+job_response.text + "SIM_JOB_RES: " + str(sim_job_response))
+            db_insert_log("multi_simulate", str(trace_msg), "Job_ID :"+job_response.text + "SIM_JOB_RES: " + str(sim_job_response.text)+ "LOG: " + exp_log)
         else:
-            db_insert_log("multi_simulate", str(trace_msg), "Job_ID :"+job_response.text)
+            db_insert_log("multi_simulate", str(trace_msg), "Job_ID :"+job_response.text + "LOG: " + exp_log)
 
 
 

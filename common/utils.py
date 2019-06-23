@@ -234,10 +234,8 @@ def login(sess):
 def check_prodcorr(alpha_id, sess):
     # Check prod corr function, input: alpha_id, output: prod corr.
     # Call api continuously until reached max tried time (pre-defined) or get result.
-    #max_tried_times = 150
-    max_tried_times = 1000 # For checking max valuable.
+    max_tried_times = 1000 
     tried_times = 1
-    # print("Check product correlation alpha id: "+str(alpha_id)) # For testing only
     while tried_times < max_tried_times:
         try:
             check_prodcorr_url = corr_url.format(alpha_id, "prod")
@@ -256,7 +254,7 @@ def check_prodcorr(alpha_id, sess):
                             return prod_corr
                 else:
                     prod_corr = -1
-            time.sleep(1.0) # Delayed time between requests.
+            time.sleep(1.0)
             tried_times = tried_times + 1
         except Exception as ex:
             trace_msg = traceback.format_exception(etype=type(ex), value=ex, tb=ex.__traceback__)
@@ -269,7 +267,6 @@ def check_prodcorr(alpha_id, sess):
 
 def check_selfcorr(alpha_id, sess):
     # Same functionality as prod corr check.
-    #max_tried_time = 150
     max_tried_time = 1000 # For debugging only
     tried_times = 1
     print("Check self correlation alpha id: "+str(alpha_id))
@@ -312,8 +309,6 @@ def check_submission(alpha_id, sess):
     print("Check submission tests alpha id: "+str(alpha_id))
     while tried_times < max_tried_times:
         try:
-            # check_submision_url = "https://api.worldquantvrc.com/alphas/" + \
-            #     str(alpha_id) + "/check"
             check_submision_url = check_sub_url.format(alpha_id)
             response = sess.get(check_submision_url, data="", headers=headers)
             if 'FAIL' in response.text:
@@ -332,8 +327,6 @@ def check_submission(alpha_id, sess):
                 db_insert_count("check_submit", tried_times, -1, -1)
                 return True, self_corr, prod_corr
             tried_times = tried_times + 1
-        # except ConnectionError:
-        #     time.sleep(20)
         except Exception as ex:
             trace_msg = traceback.format_exception(etype=type(ex), value=ex, tb=ex.__traceback__)
             db_insert_log("check_submission",str(trace_msg), "Response: " + str(response.text) + "Alpha_ID: " +str(alpha_id))
@@ -342,16 +335,6 @@ def check_submission(alpha_id, sess):
 
 
 ################## ALPHA related Function
-
-def get_myalpha(sess, region, top="", min_sharpe=0.7, min_fitness=0.7, offset=0):
-    # For checking alpha in my alpha page.
-    # Return response content in json format.
-    querystring = {"limit": "100", "offset": offset*100, "stage": "IS", "is.sharpe>": min_sharpe,
-                   "hidden": "false", "is.fitness>": min_fitness, "order": "-is.fitness", "settings.language": "FASTEXPR", "settings.region": region, "settings.universe": top}
-    response = sess.get(myalpha_url, data="",
-                        headers=headers, params=querystring)
-    return json.loads(response.content)["results"]
-    # For further use, get alpha id in ["id"] of each alpha in results
 
 def get_alpha_info(alpha_id, sess):
     # Get the alpha infomation including performance and some test results.
@@ -408,9 +391,6 @@ def get_alpha_info(alpha_id, sess):
                 return alpha_info
             else:
                 tried_time = tried_time + 1
-    # except ConnectionError:
-    #     print('CONNECTION LOST!')
-    #     return None
     except Exception as ex:
         trace_msg = traceback.format_exception(etype=type(ex), value=ex, tb=ex.__traceback__)
         db_insert_log("get_alpha_info",str(trace_msg), response.text + str(alpha_id))
@@ -429,7 +409,6 @@ def hide_alpha(alpha_id, sess):
         url = alpha_url.format(alpha_id)# + str(alpha_id)
         payload = "{ \"hidden\":true}"
         response = sess.patch(url, data=payload, headers=headers)
-        # print(response.text) # For testing only
     except Exception as ex:
         trace_msg = traceback.format_exception(etype=type(ex), value=ex, tb=ex.__traceback__)
         db_insert_log("hide_alpha",str(trace_msg), response.text)
@@ -437,7 +416,7 @@ def hide_alpha(alpha_id, sess):
 
 def change_name(alpha_id, sess, name="anonymous"):
     # Change name of an alpha. If name = None, websim automatically change it to anonymous
-    meta_url = alpha_url.format(alpha_id) #+ str(alpha_id)
+    meta_url = alpha_url.format(alpha_id)
     data = {"color": None, "name": name, "tags": [],
             "category": None, "description": None}
     try:
