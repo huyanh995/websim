@@ -71,7 +71,7 @@ def num_alpha_submitted(day, sess):
 
 
 update_query = 'UPDATE combo SET self_corr = {}, prod_corr = {} WHERE alpha_id = \'{}\''
-select_query = 'SELECT alpha_id FROM combo WHERE self_corr > 0 and prod_corr < 0.7 ORDER BY fitness/(self_corr * exp(2*prod_corr)) DESC'
+select_query = 'SELECT alpha_id FROM combo WHERE self_corr > 0 and prod_corr < 0.7 ORDER BY {} DESC'.format(config.criteria)
 delete_query = 'DELETE FROM combo WHERE alpha_id = \'{}\''
 count_query = 'SELECT count(*) FROM combo WHERE self_corr > 0 and prod_corr < 0.7'
 

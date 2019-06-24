@@ -52,5 +52,3 @@ utils.login(sess)
 # print(url)
 # response = sess.get(url)
 # print(response.content)
-
-print(utils.get_alpha_info("XwXeOgz", sess))

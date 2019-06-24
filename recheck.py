@@ -46,11 +46,11 @@ elif mode == "2":
             cursor.execute(stuff.delete_query.format(alpha_id[0]))
             db.commit()
             utils.change_name(alpha_id[0], sess, name = 'FAILED')
-        db.close()
+    db.close()
 elif mode == "3":
     select_query = 'SELECT alpha_id FROM signals WHERE self_corr < 0 OR prod_corr <0'
     update_query = 'UPDATE signals SET self_corr = {}, prod_corr = {} WHERE alpha_id = \'{}\''
-    delete_query = 'DELETE signals WHERE alpha_id = \'{}\''
+    delete_query = 'DELETE FROM signals WHERE alpha_id = \'{}\''
     db = mysql.connect(**config.config_db)
     cursor = db.cursor()
     cursor.execute(select_query)
@@ -62,12 +62,10 @@ elif mode == "3":
             if prodcorr <= config.min_signal[2]:
                 cursor.execute(update_query.format(selfcorr, prodcorr, alpha_id[0]))
                 db.commit()
-                db.close()
-    utils.change_name(alpha_id[0], sess)
-    cursor.execute(delete_query.format(alpha_id[0]))
-    db.commit()
-    db.close()   
-        
+        utils.change_name(alpha_id[0], sess)
+        cursor.execute(delete_query.format(alpha_id[0]))
+        db.commit()
+    db.close()
 
         
 

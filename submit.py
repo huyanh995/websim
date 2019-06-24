@@ -90,7 +90,7 @@ def auto_submit(mode, num_today, sess):
     try:
         max_num_alpha = 5
         num_alpha = num_today
-        select_query = 'SELECT alpha_id FROM combo WHERE self_corr > 0 AND prod_corr > 0 ORDER BY (fitness+0.3*theme)/(self_corr * exp(2*prod_corr)) DESC LIMIT {}'
+        select_query = 'SELECT alpha_id FROM combo WHERE self_corr > 0 AND prod_corr > 0 ORDER BY {} DESC LIMIT {}'
         if mode == "1":
             while num_alpha < max_num_alpha:
                 alpha_id = str(input("Alpha ID: "))
@@ -110,7 +110,7 @@ def auto_submit(mode, num_today, sess):
         elif mode == "2":
             db = mysql.connect(**config.config_db)
             cursor = db.cursor()
-            cursor.execute(select_query.format(5))
+            cursor.execute(select_query.format(config.criteria, 5))
             records = cursor.fetchall()
             db.close()
             for alpha_id in records:
@@ -137,7 +137,7 @@ def auto_submit(mode, num_today, sess):
                 stuff.re_check(sess)
                 db = mysql.connect(**config.config_db)
                 cursor = db.cursor()
-                cursor.execute(select_query.format(1)) # Choose one alpha to submit
+                cursor.execute(select_query.format(config.criteria, 1)) # Choose one alpha to submit
                 alpha_id = cursor.fetchall()
                 db.close()
                 result, selfcorr, prodcorr, tried_time = submit_alpha(alpha_id[0][0], sess)

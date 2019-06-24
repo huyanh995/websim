@@ -5,7 +5,7 @@ from data import alldata
 import traceback
 
 update_query = 'UPDATE combo SET theme = {} WHERE alpha_id = \'{}\''
-select_query = 'SELECT alpha_id, alpha_code, settings FROM combo WHERE self_corr > 0 and prod_corr < 0.7 ORDER BY fitness/(self_corr * exp(2*prod_corr)) DESC'
+select_query = 'SELECT alpha_id, alpha_code, settings FROM combo WHERE self_corr > 0 and prod_corr < 0.7 ORDER BY {} DESC'.format(config.criteria)
 select_sub_query = 'SELECT alpha_id, alpha_code, settings FROM submitted WHERE self_corr > 0'
 update_sub_query = 'UPDATE submitted SET theme = {} WHERE alpha_id = \'{}\''
 
