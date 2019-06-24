@@ -110,7 +110,7 @@ def auto_submit(mode, num_today, sess):
         elif mode == "2":
             db = mysql.connect(**config.config_db)
             cursor = db.cursor()
-            cursor.execute(select_query.format(config.criteria, 5))
+            cursor.execute(select_query.format(config.combo_criteria, 5))
             records = cursor.fetchall()
             db.close()
             for alpha_id in records:
@@ -137,7 +137,7 @@ def auto_submit(mode, num_today, sess):
                 stuff.re_check(sess)
                 db = mysql.connect(**config.config_db)
                 cursor = db.cursor()
-                cursor.execute(select_query.format(config.criteria, 1)) # Choose one alpha to submit
+                cursor.execute(select_query.format(config.combo_criteria, 1)) # Choose one alpha to submit
                 alpha_id = cursor.fetchall()
                 db.close()
                 result, selfcorr, prodcorr, tried_time = submit_alpha(alpha_id[0][0], sess)
