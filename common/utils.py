@@ -49,7 +49,7 @@ def ERRORS(sess, response, func_name):
         return True
     elif 'THROTTLED' in str(response): # Exceed concurrent check submission.
         db_insert_log(func_name, "THROTTLED",response)
-        time.sleep(random.randint(30,120))
+        time.sleep(random.randint(45,120))
         return True
     elif 'maintenance downtime' in str(response): # Websim is became stupid and need fix.
         db_insert_log("MAINTAIN","",response)
@@ -326,6 +326,7 @@ def check_submission(alpha_id, sess):
                         prod_corr = check['value']
                 db_insert_count("check_submit", tried_times, -1, -1)
                 return True, self_corr, prod_corr
+            time.sleep(1.5)
             tried_times = tried_times + 1
         except Exception as ex:
             trace_msg = traceback.format_exception(etype=type(ex), value=ex, tb=ex.__traceback__)
@@ -343,7 +344,7 @@ def get_alpha_info(alpha_id, sess):
     # to receive important information
     # Another purpose is to filter alphas for signals, alphas which satisfied sharpe and fitness
     # greater or equal than a determined value and passed the weight test is considered to be signal
-    max_tried_time = 1000
+    max_tried_time = 15
     tried_time = 1
     try:
         while tried_time < max_tried_time:
@@ -390,6 +391,7 @@ def get_alpha_info(alpha_id, sess):
                 alpha_info["status"] = alpha_res_json["status"]
                 return alpha_info
             else:
+                time.sleep(1)
                 tried_time = tried_time + 1
     except Exception as ex:
         trace_msg = traceback.format_exception(etype=type(ex), value=ex, tb=ex.__traceback__)
@@ -429,5 +431,22 @@ def change_name(alpha_id, sess, name="anonymous"):
             db_insert_log("change_name", str(trace_msg), str(alpha_id)+str(json.dumps(data)))
 
 
+########## THEME ##############
+def set_theme(alpha_code, region, data):
+    try:
+        multiplier = 0
+        #if "ASI" in settings or "EUR" in settings:
+        if region == "ASI" or region == "EUR":
+            multiplier = multiplier + 2
+        if any(err in alpha_code for err in data):
+            if multiplier > 0:
+                multiplier = multiplier + 1
+            else:
+                multiplier = multiplier + 2
+        print("TEST THEME {}".format(multiplier))
+        return multiplier
+    except Exception as ex:
+        trace_msg = traceback.format_exception(etype=type(ex), value=ex, tb=ex.__traceback__)
+        db_insert_log("theme_check", str(trace_msg),"")
 
 

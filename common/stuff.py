@@ -85,7 +85,7 @@ def re_check(sess, num = 15):
         for alpha_id in records:
             if start == num:
                 break
-            result, selfcorr, prodcorr, _ = utils.check_submission(alpha_id[0], sess)
+            result, selfcorr, prodcorr = utils.check_submission(alpha_id[0], sess)
             if result == True and selfcorr > 0:
                 print("RESULT: Pass : " + str(selfcorr) + " : " +str(prodcorr))
                 #print(update_query.format(selfcorr, prodcorr, alpha_id[0]))
@@ -118,10 +118,9 @@ def re_check_all(sess):
         for alpha_id in records:
             if start == num:
                 break
-            result, selfcorr, prodcorr, _ = utils.check_submission(alpha_id[0], sess)
+            result, selfcorr, prodcorr = utils.check_submission(alpha_id[0], sess)
             if result == True and selfcorr > 0:
                 print("RESULT: Pass : " + str(selfcorr) + " : " +str(prodcorr))
-                #print(update_query.format(selfcorr, prodcorr, alpha_id[0]))
                 cursor.execute(update_query.format(selfcorr, prodcorr, alpha_id[0]))
                 db.commit()
             elif result == False:

@@ -31,13 +31,13 @@ def update_count_used(alpha_id):
 # def get_signal_list(region, top):
 #     return
 
-def get_set_signals(top, region, theme):
+def get_set_signals(top, region):
     # Return a dictionary contains alpha_id and alpha_code of signals.
     # For prepare combination step.
     try:
         db = mysql.connect(**config.config_db)
         cursor = db.cursor()
-        query = "SELECT alpha_id, alpha_code FROM signals WHERE count_used <= {} AND theme = {} AND universe = \'{}\'".format(config.max_signal_count, theme, top)
+        query = "SELECT alpha_id, alpha_code FROM signals WHERE count_used <= {} AND universe = \'{}\'".format(config.max_signal_count, top)
         cursor.execute(query)
         records = cursor.fetchall()
         diction = dict((x,y) for x,y in records) 

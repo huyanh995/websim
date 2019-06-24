@@ -15,7 +15,7 @@ from datetime import datetime
 print("\nRE-CHECKING ALPHAS IN COMBO DB\n")
 print("Mode 1: Recheck the combo(es) after submitting.")
 print("Mode 2: Recheck failed combo after checking submission.")
-
+print("Mode 3: Recheck failed signal.")
 mode = str(input("\nChoose mode: "))
 sess = requests.session()
 utils.login(sess)
@@ -30,13 +30,13 @@ if mode == "1":
         stuff.re_check(sess, qual_num)
     print("==============================")
 elif mode == "2":
-    select_query = 'SELECT alpha_id FROM combo WHERE self_corr < 0 OR prod_corr <0;'
+    select_query = 'SELECT alpha_id FROM combo WHERE self_corr < 0 OR prod_corr <0'
     db = mysql.connect(**config.config_db)
     cursor = db.cursor()
     cursor.execute(select_query)
     records = cursor.fetchall()
     for alpha_id in records:
-        result, selfcorr, prodcorr, _ = utils.check_submission(alpha_id[0], sess)
+        result, selfcorr, prodcorr = utils.check_submission(alpha_id[0], sess)
         if result == True:
             print("RESULT: Pass : " + str(selfcorr) + " : " +str(prodcorr))
             cursor.execute(stuff.update_query.format(selfcorr, prodcorr, alpha_id[0]))
@@ -46,5 +46,28 @@ elif mode == "2":
             cursor.execute(stuff.delete_query.format(alpha_id[0]))
             db.commit()
             utils.change_name(alpha_id[0], sess, name = 'FAILED')
+        db.close()
+elif mode == "3":
+    select_query = 'SELECT alpha_id FROM signals WHERE self_corr < 0 OR prod_corr <0'
+    update_query = 'UPDATE signals SET self_corr = {}, prod_corr = {} WHERE alpha_id = \'{}\''
+    delete_query = 'DELETE signals WHERE alpha_id = \'{}\''
+    db = mysql.connect(**config.config_db)
+    cursor = db.cursor()
+    cursor.execute(select_query)
+    records = cursor.fetchall()
+    for alpha_id in records:
+        selfcorr = utils.check_selfcorr(alpha_id[0], sess)
+        if selfcorr <= config.min_signal[2]:
+            prodcorr = utils.check_prodcorr(alpha_id[0], sess)
+            if prodcorr <= config.min_signal[2]:
+                cursor.execute(update_query.format(selfcorr, prodcorr, alpha_id[0]))
+                db.commit()
+                db.close()
+    utils.change_name(alpha_id[0], sess)
+    cursor.execute(delete_query.format(alpha_id[0]))
+    db.commit()
+    db.close()   
+        
 
+        
 

@@ -40,24 +40,25 @@ else:
 
 num_signals = int(input("Number of signal combination: "))
 
-input_theme = str(input("Do you want to apply current theme (Y/N): "))
-answers = ["Y","y","N",'n']
-assert(input_theme in answers), "Wrong input!"
-if input_theme == 'Y' or input_theme == 'y':
-    theme = 1
-    answer = 'Yes'
-else: 
-    theme = 0
-    answer = 'No'
+# input_theme = str(input("Do you want to apply current theme (Y/N): "))
+# answers = ["Y","y","N",'n']
+# assert(input_theme in answers), "Wrong input!"
+# if input_theme == 'Y' or input_theme == 'y':
+#     theme = 1
+#     answer = 'Yes'
+# else: 
+#     theme = 0
+#     answer = 'No'
 print("\n==================================================")
 print("Region: {}, Universe: {}".format(region,top))
 print("Number of signal combination: {}".format(num_signals))
-print("Apply theme: {}".format(answer)+"\n")
+# print("Apply theme: {}".format(answer)+"\n")
 # Get a list contains alpha_ids from signals. Update every 20 minutes. (PENDING)
+data_theme = alldata.data["Theme"]
 def combo_simulate(thread_num):
     while True:
         try:
-            list_signal = combo_generator.get_set_signals(top, region, theme)
+            list_signal = combo_generator.get_set_signals(top, region)
             combo_alpha, list_alpha_ids = combo_generator.generate_combo(list_signal, num_signals, top, region)
             alpha_id = simulator.simulate_alpha(sess, combo_alpha["alpha_code"], top, region, thread_num)
             utils.change_name(alpha_id, sess, name="potential")
@@ -69,7 +70,7 @@ def combo_simulate(thread_num):
                     if result == True and max(selfcorr, prodcorr) <= config.min_combo[2]: 
                         alpha_info["self_corr"] = selfcorr
                         alpha_info["prod_corr"] = prodcorr
-                        alpha_info["theme"] = theme
+                        alpha_info["theme"] = utils.set_theme(alpha_info["alpha_code"], alpha_info["region"], data_theme)
                         utils.change_name(alpha_id, sess, "can_submit")
                         utils.db_insert_combo(alpha_info)
                         for signal_id in list_alpha_ids:
