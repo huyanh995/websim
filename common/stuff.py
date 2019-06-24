@@ -88,14 +88,12 @@ def re_check(sess, num = 15):
             result, selfcorr, prodcorr = utils.check_submission(alpha_id[0], sess)
             if result == True and selfcorr > 0:
                 print("RESULT: Pass : " + str(selfcorr) + " : " +str(prodcorr))
-                #print(update_query.format(selfcorr, prodcorr, alpha_id[0]))
                 cursor.execute(update_query.format(selfcorr, prodcorr, alpha_id[0]))
                 db.commit()
                 start = start + 1
                 print("Number of qualified alpha: {}/{}".format(start, num))
             elif result == False:
                 print("RESULT: Fail : " + str(selfcorr) + " : " +str(prodcorr))
-                #print(delete_query.format(alpha_id[0]))
                 cursor.execute(delete_query.format(alpha_id[0]))
                 db.commit()
                 utils.change_name(alpha_id[0], sess, name = 'FAILED')
