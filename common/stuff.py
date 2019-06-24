@@ -69,9 +69,9 @@ def num_alpha_submitted(day, sess):
         trace_msg = traceback.format_exception(etype=type(ex), value=ex, tb=ex.__traceback__)
         utils.db_insert_log("num_alpha_submitted",str(trace_msg), response.text)
 
-
+criteria = config.criteria
 update_query = 'UPDATE combo SET self_corr = {}, prod_corr = {} WHERE alpha_id = \'{}\''
-select_query = 'SELECT alpha_id FROM combo WHERE self_corr > 0 and prod_corr < 0.7 ORDER BY {} DESC'.format(config.criteria)
+select_query = 'SELECT alpha_id FROM combo WHERE self_corr > 0 and prod_corr < 0.7 ORDER BY {} DESC'.format(criteria)
 delete_query = 'DELETE FROM combo WHERE alpha_id = \'{}\''
 count_query = 'SELECT count(*) FROM combo WHERE self_corr > 0 and prod_corr < 0.7'
 
