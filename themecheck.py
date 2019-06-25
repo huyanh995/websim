@@ -5,7 +5,7 @@ from data import alldata
 import traceback
 
 update_query = 'UPDATE combo SET theme = {} WHERE alpha_id = \'{}\''
-select_query = 'SELECT alpha_id, alpha_code, settings FROM combo WHERE self_corr > 0 and prod_corr < 0.7 ORDER BY {} DESC'.format(config.criteria)
+select_query = 'SELECT alpha_id, alpha_code, settings FROM combo WHERE self_corr > 0 and theme = 0'
 select_sub_query = 'SELECT alpha_id, alpha_code, settings FROM submitted WHERE self_corr > 0'
 update_sub_query = 'UPDATE submitted SET theme = {} WHERE alpha_id = \'{}\''
 
@@ -26,8 +26,8 @@ def theme_check(alpha_id, alpha_code, settings, data):
             print(str(alpha_id) + ": NOT THEME")
         db = mysql.connect(**config.config_db)
         cursor = db.cursor()
-        #cursor.execute(update_query.format(multiplier, alpha_id))
-        cursor.execute(update_sub_query.format(multiplier, alpha_id))
+        cursor.execute(update_query.format(multiplier, alpha_id))
+        #cursor.execute(update_sub_query.format(multiplier, alpha_id))
         db.commit()
         db.close()
     except Exception as ex:
@@ -38,8 +38,8 @@ data_theme = alldata.data["Theme"]
 
 db = mysql.connect(**config.config_db)
 cursor = db.cursor()
-#cursor.execute(select_query)
-cursor.execute(select_sub_query)
+cursor.execute(select_query)
+#cursor.execute(select_sub_query)
 records = cursor.fetchall()
 db.close()
 for record in records:

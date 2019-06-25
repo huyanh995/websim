@@ -62,7 +62,7 @@ def simulate_alpha(sess, alpha_code, top, region, thread_num):
                         sim_alpha_url = sim_url.format(job_id) 
                         alpha_response = sess.get(
                             sim_alpha_url, data="", headers=headers)
-                        print("{}: ".format(tried_res_time) + str(alpha_response))
+                        #print("{}: ".format(tried_res_time) + str(alpha_response))
                         if ERRORS(sess, alpha_response.text, "simulate_alpha_2"):
                             time.sleep(1)
                         else:
@@ -70,7 +70,7 @@ def simulate_alpha(sess, alpha_code, top, region, thread_num):
                                 alpha_res_json = json.loads(alpha_response.content)
                                 if alpha_res_json["status"] == 'COMPLETE' or alpha_res_json["status"] == "WARNING":
                                     alpha_id = json.loads(alpha_response.content)["alpha"]
-                                    print("Thread {}: DONE: ".format(thread_num)+str(alpha_id))
+                                    #print("Thread {}: DONE: ".format(thread_num)+str(alpha_id))
                                     return alpha_id
                                 else:
                                     return None
@@ -81,7 +81,6 @@ def simulate_alpha(sess, alpha_code, top, region, thread_num):
                     db_insert_log("simulate_alpha",str(trace_msg_alpha), "Job_ID :"+job_response.text+"\nAlpha_ID :"+alpha_response.text)
             time.sleep(1)
             tried_sim_time = tried_sim_time + 1
-        db_insert_count("simulate_alpha",tried_sim_time, tried_res_time, -1)
         return None
     except Exception as ex:
         trace_msg = traceback.format_exception(etype=type(ex), value=ex, tb=ex.__traceback__)
@@ -110,7 +109,7 @@ def multi_simulate(sess, alpha_codes, top, region, thread_num):
             job_response = sess.post(
                 job_sim_url, data=json.dumps(payload), headers=headers)
             exp_log = exp_log + str(job_response.status_code) + " : " + job_response.text + " : " + str(job_response.headers) + " : \n"
-            print("INITIAL {}:".format(tried_step1_time) + str(job_response))
+            #print("INITIAL {}:".format(tried_step1_time) + str(job_response))
             # Get JSON string from server
             if 'SIMULATION_LIMIT_EXCEED' in job_response.text:
                 db_insert_log("multi_simulate_1", "SIMULATION_LIMIT_EXCEED", str(job_response) )
@@ -125,7 +124,7 @@ def multi_simulate(sess, alpha_codes, top, region, thread_num):
                     sim_job_url = sim_url.format(parent_job_id)
                     sim_job_response = sess.get(sim_job_url, data="", headers = headers)
                     exp_log = exp_log + str(sim_job_response.status_code) + " : " + sim_job_response.text + " : " + str(sim_job_response.headers)
-                    print("RESPONSE JOB {}: ".format(tried_step2_time) + str(sim_job_response))
+                    #print("RESPONSE JOB {}: ".format(tried_step2_time) + str(sim_job_response))
                     if 'SIMULATION_LIMIT_EXCEED' in job_response.text:
                         db_insert_log("multi_simulate", "SIMULATION_LIMIT_EXCEED", sim_job_response.text)
                         time.sleep(3)
@@ -143,7 +142,7 @@ def multi_simulate(sess, alpha_codes, top, region, thread_num):
                                     sim_alpha_url = sim_url.format(job_id) 
                                     alpha_response = sess.get(
                                         sim_alpha_url, data="", headers=headers)
-                                    print("RESPONSE ALPHA {}: ".format(tried_res_time) + str(alpha_response))
+                                    #print("RESPONSE ALPHA {}: ".format(tried_res_time) + str(alpha_response))
                                     if ERRORS(sess, alpha_response.text, "multi_simulate_2"):
                                         time.sleep(1)
                                     elif job_id in alpha_response.text: # Condition to know the simulation process is done. Maybe you will find a better solution.
@@ -151,7 +150,7 @@ def multi_simulate(sess, alpha_codes, top, region, thread_num):
                                         if alpha_res_json["status"] == 'COMPLETE' or alpha_res_json["status"] == "WARNING":
                                             alpha_id = alpha_res_json["alpha"]
                                             alpha_ids.append(alpha_id)
-                                            print("Thread {}: DONE: ".format(thread_num)+str(alpha_id))
+                                            #print("Thread {}: DONE: ".format(thread_num)+str(alpha_id))
                                             break
                                         else:
                                             return None
@@ -164,7 +163,6 @@ def multi_simulate(sess, alpha_codes, top, region, thread_num):
                         return alpha_ids # Return results
             time.sleep(1.0)
             tried_step1_time = tried_step1_time + 1
-        db_insert_count("multi_simulate",tried_step1_time, tried_step2_time, tried_res_time)
         return None
     except Exception as ex:
         trace_msg = traceback.format_exception(etype=type(ex), value=ex, tb=ex.__traceback__)

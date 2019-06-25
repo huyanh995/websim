@@ -27,7 +27,7 @@ def ERRORS(sess, response, func_name):
     # Thank Ho Duc Nhan for this part.
     # 'b\'\''
     # 'b\'{}\''
-    ServerErrors = ['Time-out', 'Gateway', 'Server Error', '<html>'
+    ServerErrors = ['Time-out', 'Gateway', 'Server Error', '<html>', 'Proxy Error'
                     'An invalid response was received from the upstream server',
                     'The upstream server is timing out', 'Not found']
     # if any(err in str(response) for err in ServerErrors):
@@ -323,7 +323,6 @@ def check_submission(alpha_id, sess):
                         self_corr = check['value']
                     if check['name'] == 'PROD_CORRELATION':
                         prod_corr = check['value']
-                db_insert_count("check_submit", tried_times, -1, -1)
                 return True, self_corr, prod_corr
             time.sleep(1.5)
             tried_times = tried_times + 1
