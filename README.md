@@ -47,7 +47,7 @@ combo_template = ["template 1", "template 2", ... ]
 combo_criteria = "your_criteria" # e.g: fitness/prod_corr
 ```
 
-* The number of submitted alphas before being a consultant. For better use in the future, you should hide all of theme:
+* The number of submitted alphas before being a consultant. For better use in the future, you should hide all of them:
 ```python
 num_alphathon = 12
 ```
