@@ -157,3 +157,22 @@ def get_db_stat(day_ws_time):
         trace_msg = traceback.format_exception(etype=type(ex), value=ex, tb=ex.__traceback__)
         utils.db_insert_log("STAT: ", str(trace_msg), "")
     
+def get_payout_all(sess):
+    try:
+        update_payout_query = "UPDATE submitted SET payout = {} WHERE submitted_at = \'{}\' AND alpha_id != \'\'"
+        response = sess.get('https://api.worldquantvrc.com/users/self/activities/base-payment')
+        payout_res = json.loads(response.content)
+        records = payout_res["records"]["records"]
+        db = mysql.connect(**config.config_db)
+        cursor = db.cursor()
+        for record in records:
+            print("UPDATE: DAY: {} - PAYOUT: {}".format(record[0], record[1]))
+            cursor.execute(update_payout_query.format(record[1], record[0]))
+            db.commit()
+        db.close()
+    except Exception as ex:
+        trace_msg = traceback.format_exception(etype=type(ex), value=ex, tb=ex.__traceback__)
+        if response.text:
+            utils.db_insert_log("get_payout", str(trace_msg), response.text)
+        else:
+            utils.db_insert_log("get_payout", str(trace_msg), "")

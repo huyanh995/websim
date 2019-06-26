@@ -45,7 +45,7 @@ print("----------------------------------")
 print("Combo        " + str(num_combo) + " (+{})".format(diff_combo))
 print("Signal       " + str(num_signal)+ " (+{})".format(diff_signal))
 print("IS           " + str(is_sum))
-print("OS           " + str(os_sum))
+print("OS           " + str(os_sum-config.num_alphathon))
 
 
 print("\nANNOUNCEMENTS")
@@ -53,3 +53,13 @@ print("----------------------------------")
 for mess in messages:
     print(str(mess["dateCreated"]).split("T")[0] + "   " + mess["title"])
 print("\n")
+
+
+if yesterday != 0:
+    date_yesterday = str(datetime.now() - timedelta(hours = 24)).split(" ")[0]
+    update_payout_query = "UPDATE submitted SET payout = {} WHERE submitted_at = \'{}\' AND alpha_id != \'\'"
+    db = mysql.connect(**config.config_db)
+    cursor = db.cursor()
+    cursor.execute(update_payout_query.format(yesterday, date_yesterday))
+    db.commit()
+    db.close()

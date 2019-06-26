@@ -5,7 +5,7 @@ from common import utils, config, stuff
 from datetime import datetime, timedelta
 import mysql.connector as mysql
 import pytz
-
+import math
 
 
 # def db_update_submitted():
@@ -52,3 +52,9 @@ utils.login(sess)
 # print(url)
 # response = sess.get(url)
 # print(response.content)
+
+select_theme_query = 'SELECT theme FROM combo WHERE alpha_id = \'{}\''.format("0k9RYE2")
+db = mysql.connect(**config.config_db)
+cursor = db.cursor()
+cursor.execute(select_theme_query)
+print(cursor.fetchall()[0][0])

@@ -52,13 +52,16 @@ def db_move_combo(alpha_id, selfcorr, prodcorr, sess):
     # then delete the alpha from combo table.
     try:
         delete_query = 'DELETE FROM combo WHERE alpha_id = \'{}\''.format(alpha_id)
+        select_theme_query = 'SELECT theme FROM combo WHERE alpha_id = \'{}\''.format(alpha_id)
         alpha_info = utils.get_alpha_info(alpha_id, sess)
         alpha_info["self_corr"] = selfcorr
         alpha_info["prod_corr"] = prodcorr
         #print(alpha_info)
-        utils.db_insert_submitted(alpha_info)
         db = mysql.connect(**config.config_db)
         cursor = db.cursor()
+        cursor.execute(select_theme_query)
+        alpha_info["theme"] = cursor.fetchall()[0][0]
+        utils.db_insert_submitted(alpha_info)
         cursor.execute(delete_query)
         db.commit()
         db.close()
