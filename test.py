@@ -53,8 +53,16 @@ utils.login(sess)
 # response = sess.get(url)
 # print(response.content)
 
-select_theme_query = 'SELECT theme FROM combo WHERE alpha_id = \'{}\''.format("0k9RYE2")
+update_query = 'UPDATE signals SET prod_corr = {} WHERE alpha_id = \'{}\''
+select_query = 'SELECT alpha_id FROM signals WHERE prod_corr <= 0.101'
+
 db = mysql.connect(**config.config_db)
 cursor = db.cursor()
-cursor.execute(select_theme_query)
-print(cursor.fetchall()[0][0])
+cursor.execute(select_query)
+alpha_ids = cursor.fetchall()
+for alpha_id in alpha_ids:
+    prodcorr = utils.check_prodcorr(alpha_id[0], sess)
+    print("ID: {}: {}".format(alpha_id[0], prodcorr))
+    cursor.execute(update_query.format(prodcorr, alpha_id[0]))
+    db.commit()
+db.close()

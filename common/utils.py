@@ -244,15 +244,16 @@ def check_prodcorr(alpha_id, sess):
                 time.sleep(1)
             elif "prodCorrelation" in response.text:
                 prod_corr_res_obj = json.loads(response.content)["records"]
-                for x in range(1, len(prod_corr_res_obj)-1):
-                    if prod_corr_res_obj[len(prod_corr_res_obj)-x][2] != 0:
-                        prod_corr = prod_corr_res_obj[len(
-                            prod_corr_res_obj)-x][1]
-                        db_insert_count("check_prod", tried_times, -1, -1)
-                        return prod_corr
-                    else:
-                        prod_corr = 0.1
-                        return prod_corr
+                if len(prod_corr_res_obj) > 0:
+                    for x in range(1, len(prod_corr_res_obj)-1):
+                        if prod_corr_res_obj[len(prod_corr_res_obj)-x][2] != 0:
+                            prod_corr = prod_corr_res_obj[len(
+                                prod_corr_res_obj)-x][1]
+                            db_insert_count("check_prod", tried_times, -1, -1)
+                            return prod_corr
+                else:
+                    prod_corr = 0.1
+                    return prod_corr
             time.sleep(1.0)
             tried_times = tried_times + 1
         except Exception as ex:

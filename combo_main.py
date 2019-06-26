@@ -49,7 +49,7 @@ num_signals = int(input("Number of signal combination: "))
 # else: 
 #     theme = 0
 #     answer = 'No'
-print("\n==================================================")
+print("\n----------------------------------")
 print("Region: {}, Universe: {}".format(region,top))
 print("Number of signal combination: {}".format(num_signals))
 # print("Apply theme: {}".format(answer)+"\n")

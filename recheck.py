@@ -28,7 +28,7 @@ if mode == "1":
     else:
         qual_num = int(input)
         stuff.re_check(sess, qual_num)
-    print("==============================")
+    print("----------------------------------")
 elif mode == "2":
     select_query = 'SELECT alpha_id FROM combo WHERE self_corr < 0 OR prod_corr <0'
     db = mysql.connect(**config.config_db)

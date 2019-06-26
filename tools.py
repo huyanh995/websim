@@ -72,7 +72,7 @@ while True:
     mode = str(input("\nChoose mode: "))
     modes = ["1","2","3","4","5","x","X"]
     assert(mode in modes)
-    print("------------------------------------------------")    
+    print("----------------------------------")    
     sess = requests.session()
     utils.login(sess)
     if mode == "1":
@@ -80,7 +80,7 @@ while True:
         print("\nTRANSFER SUBMITTED ALPHAS TO MySQL DB\n")        
         get_submitted_alpha(sess)
         print("\nDONE")
-        print("\n------------------------------------------------")  
+        print("\n----------------------------------")  
     elif mode == "2":
         print("\nUPDATE THEME FOR EXISTED COMBO/SUBMITTED ALPHAS\n")  
         data_theme = alldata.data["Theme"]
@@ -104,19 +104,19 @@ while True:
             for record in records:
                 theme_check(record[0], record[1], record[2], data_theme, update_sub_query)
         print("\nDONE")
-        print("\n------------------------------------------------")  
+        print("\n----------------------------------")  
     elif mode == "3":
         print("\nTEST MySQL CONNECTION\n") 
         db = mysql.connect(**config.config_db)
         print("Connection: " + str(db.is_connected())+ "\nUser:       " + str(db._user))
         db.close()
-        print("\n------------------------------------------------")  
+        print("\n----------------------------------")  
     elif mode == "4":
         ## Payout
         print("\nIMPORT PAYOUT DATA TO DATABASE\n")
         stuff.get_payout_all(sess)
         print("\nDONE")
-        print("\n------------------------------------------------")  
+        print("\n----------------------------------")  
     elif mode == "5":
         print("\nRECORD NUMBER OF GENERATED ALPHA\n")
         num_is = []

@@ -51,7 +51,7 @@ else:
     theme = 0
 
 
-print("\n==================================================")
+print("\n----------------------------------")
 print("Region: {}, Universe: {}".format(region,top))
 print("Apply theme: {}".format(answer)+"\n")
 
