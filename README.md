@@ -40,5 +40,16 @@ num_sim = (no of signal, no of combo)
 signal_template = ["template 1", "template 2", ... ]
 combo_template = ["template 1", "template 2", ... ]
 ```
+
+* Your criteria to choose alpha to submit:
+```python
+combo_criteria = "your_criteria" # e.g: fitness/prod_corr
+```
+
+* The number of submitted alphas before being a consultant. For better use in the future, you should hide all of theme:
+```python
+num_alphathon = 12
+```
+
 ## Follow the prerequisite.md to install requested package and settings.
 
