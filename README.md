@@ -28,10 +28,11 @@ min_signal = (min_sharpe, min_fitness, max(selfcorr, prodcorr))
 min_combo = (min_sharpe, min_fitness, max(selfcorr, prodcorr))
 ```
 
-* Your config of ratio of signal simulation threads/ combo simulation threads:
+* Your config of number of signals/combo threads:
 
 ```python
-num_sim = (no of signal, no of combo)
+num_signal_threads = 5
+num_combo_threads = 8
 ```
 
 * Your signal templates and combo templates:
