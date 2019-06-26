@@ -137,7 +137,7 @@ def auto_submit(mode, num_today, sess):
             # Recheck 15 alphas >> Submit 1 >> Increase index >> Loop.
             # If an alpha get stucks, cannot submit and show "Time-out" forever, the function will be stucked. But I'm too lazy for it, so well :v.
             while num_alpha < 5:
-                stuff.re_check(sess)
+                stuff.re_check(sess,10)
                 db = mysql.connect(**config.config_db)
                 cursor = db.cursor()
                 cursor.execute(select_query.format(config.combo_criteria, 1)) # Choose one alpha to submit
