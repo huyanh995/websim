@@ -251,9 +251,9 @@ def check_prodcorr(alpha_id, sess):
                                 prod_corr_res_obj)-x][1]
                             db_insert_count("check_prod", tried_times, -1, -1)
                             return prod_corr
+                    return 0.1 # For alphas which cannot find the prodcorr due to there is no correlated alpha in the alpha pool.
                 else:
-                    prod_corr = 0.1
-                    return prod_corr
+                    return 0.1
             time.sleep(1.0)
             tried_times = tried_times + 1
         except Exception as ex:
