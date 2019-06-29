@@ -38,17 +38,18 @@ elif mode == "2":
     for alpha_id in records:
         result, selfcorr, prodcorr = utils.check_submission(alpha_id[0], sess)
         if result == True:
-            print("RESULT: Pass : " + str(selfcorr) + " : " +str(prodcorr))
+            print("Pass : " + str(selfcorr) + " : " +str(prodcorr))
             cursor.execute(stuff.update_query.format(selfcorr, prodcorr, alpha_id[0]))
             db.commit()
         elif result == False:
-            print("RESULT: Fail : " + str(selfcorr) + " : " +str(prodcorr))
+            print("Fail : " + str(selfcorr) + " : " +str(prodcorr))
             cursor.execute(stuff.delete_query.format(alpha_id[0]))
             db.commit()
             utils.change_name(alpha_id[0], sess, name = 'FAILED')
     db.close()
 elif mode == "3":
-    select_query = 'SELECT alpha_id FROM signals WHERE self_corr < 0 OR prod_corr <0'
+    # Sua lai check selfcorr truoc (query rieng) >> Check prodcorr.
+    select_query = 'SELECT alpha_id, self_corr, prod_corr FROM signals WHERE self_corr < 0 OR prod_corr < 0'
     update_query = 'UPDATE signals SET self_corr = {}, prod_corr = {} WHERE alpha_id = \'{}\''
     delete_query = 'DELETE FROM signals WHERE alpha_id = \'{}\''
     db = mysql.connect(**config.config_db)
@@ -56,15 +57,28 @@ elif mode == "3":
     cursor.execute(select_query)
     records = cursor.fetchall()
     for alpha_id in records:
-        selfcorr = utils.check_selfcorr(alpha_id[0], sess)
-        if selfcorr <= config.min_signal[2]:
+        if alpha_id[1] < 0:
+            selfcorr = utils.check_selfcorr(alpha_id[0], sess)
+            if selfcorr <= config.min_signal[2]: 
+                print("Pass: {}".format(selfcorr))
+                cursor.execute(update_query.format(selfcorr, "\'prod_corr\'", alpha_id[0])) # Kiem tra lai
+                db.commit()
+            else: # Greater than threshold >> Delete
+                print("Fail: {}".format(selfcorr))
+                cursor.execute(delete_query.format(alpha_id[0]))
+                db.commit()
+                utils.change_name(alpha_id[0], sess)
+        if alpha_id[2] < 0:
             prodcorr = utils.check_prodcorr(alpha_id[0], sess)
             if prodcorr <= config.min_signal[2]:
-                cursor.execute(update_query.format(selfcorr, prodcorr, alpha_id[0]))
+                print("Pass: {}".format(prodcorr))
+                cursor.execute(update_query.format("\'self_corr\'", prodcorr, alpha_id[0]))
                 db.commit()
-        utils.change_name(alpha_id[0], sess)
-        cursor.execute(delete_query.format(alpha_id[0]))
-        db.commit()
+            else:
+                print("Fail: {}".format(prodcorr))
+                cursor.execute(delete_query.format(alpha_id[0]))
+                db.commit()
+                utils.change_name(alpha_id[0], sess)
     db.close()
 
         

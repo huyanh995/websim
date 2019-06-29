@@ -234,8 +234,9 @@ def login(sess):
 def check_prodcorr(alpha_id, sess):
     # Check prod corr function, input: alpha_id, output: prod corr.
     # Call api continuously until reached max tried time (pre-defined) or get result.
-    max_tried_times = 1000 
+    max_tried_times = 150 
     tried_times = 1
+    #print("Check product correlation alpha id: {}".format(alpha_id))
     while tried_times < max_tried_times:
         try:
             check_prodcorr_url = corr_url.format(alpha_id, "prod")
@@ -249,7 +250,7 @@ def check_prodcorr(alpha_id, sess):
                         if prod_corr_res_obj[len(prod_corr_res_obj)-x][2] != 0:
                             prod_corr = prod_corr_res_obj[len(
                                 prod_corr_res_obj)-x][1]
-                            db_insert_count("check_prod", tried_times, -1, -1)
+                            #db_insert_count("check_prod", tried_times, -1, -1)
                             return prod_corr
                     return 0.1 # For alphas which cannot find the prodcorr due to there is no correlated alpha in the alpha pool.
                 else:
@@ -267,9 +268,9 @@ def check_prodcorr(alpha_id, sess):
 
 def check_selfcorr(alpha_id, sess):
     # Same functionality as prod corr check.
-    max_tried_time = 1000 # For debugging only
+    max_tried_time = 150 
     tried_times = 1
-    print("Check self correlation alpha id: "+str(alpha_id))
+    #print("Check self correlation alpha id: {}".format(alpha_id))
     while tried_times < max_tried_time:
         try:
             check_selfcorr_url = corr_url.format(alpha_id, "self")
@@ -280,7 +281,7 @@ def check_selfcorr(alpha_id, sess):
                 self_corr_list = json.loads(response.content)["records"]
                 if len(self_corr_list) > 0:
                     self_corr = self_corr_list[0][5]
-                    db_insert_count("check_self", tried_times, -1, -1)
+                    #db_insert_count("check_self", tried_times, -1, -1)
                     return self_corr
                 else:
                     self_corr = 0.1
@@ -306,7 +307,7 @@ def check_submission(alpha_id, sess):
     # the alpha is considered re-run the test in the future.
     max_tried_times = 650
     tried_times = 1
-    print("Check submission tests alpha id: "+str(alpha_id))
+    print("Check submission tests alpha id: {}".format(alpha_id))
     while tried_times < max_tried_times:
         try:
             check_submision_url = check_sub_url.format(alpha_id)
@@ -321,9 +322,15 @@ def check_submission(alpha_id, sess):
                 list_test = json.loads(response.content)["is"]["checks"]
                 for check in list_test:
                     if check['name'] == 'SELF_CORRELATION':
-                        self_corr = check['value']
+                        if check['result'] == 'ERROR':
+                            self_corr = -1
+                        else:
+                            self_corr = check['value']
                     if check['name'] == 'PROD_CORRELATION':
-                        prod_corr = check['value']
+                        if check['result'] == 'ERROR':
+                            prod_corr = -1
+                        else:
+                            prod_corr = check['value']
                 return True, self_corr, prod_corr
             time.sleep(1.5)
             tried_times = tried_times + 1
@@ -376,7 +383,7 @@ def get_alpha_info(alpha_id, sess):
                     elif test["name"] == "CONCENTRATED_WEIGHT":
                         alpha_info["weight_test"] = test["result"]
                         break
-                alpha_info["self_corr"] = 0
+                alpha_info["self_corr"] = 0 # It means you need to add value when using.
                 alpha_info["prod_corr"] = 0
                 alpha_info["longCount"] = alpha_res_json["is"]["longCount"]
                 alpha_info["shortCount"] = alpha_res_json["is"]["shortCount"]
@@ -387,6 +394,7 @@ def get_alpha_info(alpha_id, sess):
                 alpha_info["margin"] = alpha_res_json["is"]["margin"]
                 alpha_info["drawdown"] = alpha_res_json["is"]["drawdown"]
                 alpha_info["status"] = alpha_res_json["status"]
+                alpha_info["theme"] = 0
                 return alpha_info
             else:
                 time.sleep(1)

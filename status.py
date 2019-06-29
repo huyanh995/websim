@@ -55,7 +55,7 @@ for mess in messages:
 print("\n")
 
 
-if yesterday != 0:
+if yesterday != 0 and num_today == 0:
     date_yesterday = str(datetime.now() - timedelta(hours = 24)).split(" ")[0]
     update_payout_query = "UPDATE submitted SET payout = {} WHERE submitted_at = \'{}\' AND alpha_id != \'\'"
     db = mysql.connect(**config.config_db)
