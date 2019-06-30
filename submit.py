@@ -126,7 +126,7 @@ def auto_submit(mode, num_today, sess):
                     utils.change_name(alpha_id[0], sess, name = 'submitted')
                     print("Alpha {} submitted successfully. ({}/5)".format(alpha_id[0], num_alpha))
                 elif result == False and tried_time < max_tried_time:
-                    #db_delete_combo(alpha_id[0])
+                    db_delete_combo(alpha_id[0])
                     print("Can not submit alpha {}.".format(alpha_id[0]))
                 elif result == False and tried_time == max_tried_time:
                     print("Time-out")
