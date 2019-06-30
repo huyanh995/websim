@@ -54,14 +54,16 @@ def generate_combo(signals, num_signal, top, region):
         combo = {"alpha_code":"", "region":region, "top":top} # Get a dictionary contains alpha_code, region and top.
         index = 0
         list_alpha_ids = [] # Get list of signal's alpha_id to increase count if combo is qualified.
-        combo_code = 'alpha = group_neutralize(add('
+        combo_code = ""
+        #combo_code = 'alpha = group_neutralize(add('
         for signal in rnd_signals:
             combo_signal = combo_signal + "sn" + str(index) + "=" + signal[1] + "; "
             combo_code = combo_code + "sn" + str(index) + ", "
             list_alpha_ids.append(signal[0])
             index = index + 1
-        combo_code = combo_signal + combo_code + 'filter = true), market); alpha'
-        combo["alpha_code"]=combo_code
+        #combo_code = combo_signal + combo_code + 'filter = true), market); alpha'
+        rndCombo = random.choice(config.combo_template).format(combo_signal, combo_code)
+        combo["alpha_code"]=rndCombo
         return combo, list_alpha_ids
     except Exception as ex:
         trace_msg = traceback.format_exception(etype=type(ex), value=ex, tb=ex.__traceback__)

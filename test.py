@@ -7,6 +7,7 @@ from datetime import datetime, timedelta
 import mysql.connector as mysql
 import pytz
 import math
+import random
 
 
 # def db_update_submitted():
@@ -53,11 +54,8 @@ utils.login(sess)
 # print(url)
 # response = sess.get(url)
 # print(response.content)
-signal = 'group_neutralize(group_rank(((ts_min_max_diff(star_arm_score,149, f = 0.5)-ts_av_diff(debt_st,149))/last_diff_value(star_eps_fq2_enddate,149)),sector),market)'
-for x in alldata.data["USA"]:
-    print(x)
-    if x in signal:
-        print(type(x))
-        signal = signal.replace(x, '')
-print(signal)
+
+combo_temp = random.choice(config.combo_template)
+print(combo_temp)
+print(len(config.combo_template))
 
