@@ -2,6 +2,7 @@ import requests
 import json
 import traceback
 from common import utils, config, stuff
+from data import alldata
 from datetime import datetime, timedelta
 import mysql.connector as mysql
 import pytz
@@ -52,15 +53,11 @@ utils.login(sess)
 # print(url)
 # response = sess.get(url)
 # print(response.content)
+signal = 'group_neutralize(group_rank(((ts_min_max_diff(star_arm_score,149, f = 0.5)-ts_av_diff(debt_st,149))/last_diff_value(star_eps_fq2_enddate,149)),sector),market)'
+for x in alldata.data["USA"]:
+    print(x)
+    if x in signal:
+        print(type(x))
+        signal = signal.replace(x, '')
+print(signal)
 
-update_query = 'UPDATE signals SET prod_corr = {} WHERE alpha_id = \'{}\''
-select_query = 'SELECT alpha_id FROM signals WHERE prod_corr <= 0.101'
-
-db = mysql.connect(**config.config_db)
-cursor = db.cursor()
-cursor.execute(select_query)
-alpha_ids = cursor.fetchall()
-for alpha_id in alpha_ids:
-    print("CHECKING {}".format(alpha_id[0]))
-    prodcorr = utils.check_prodcorr(alpha_id[0], sess)
-db.close()

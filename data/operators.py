@@ -167,6 +167,6 @@ ts_operator = [
 #            group_operator + \
 #            ts_operator
 def operators():
-    return ts_operator + cross_sectional_operator
+    return simple_operater + logical_operator + complex_operator + cross_sectional_operator + ts_operator + group_operator
 
 

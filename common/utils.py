@@ -206,20 +206,28 @@ def db_insert_submitted(alpha_info):
         db_exception.write(log_mess)
         db_exception.close()
 
-def db_insert_count(func_name, no1=-1, no2=-1, no3=-1):
-    try:
-        db = mysql.connect(**config.config_db)
-        cursor = db.cursor()
-        query = "INSERT INTO count_use (func_name, no1, no2, no3) VALUES (%s, %s, %s, %s)"
-        values = (func_name, no1, no2, no3)
-        cursor.execute(query, values)
-        db.commit()
-    except Exception as ex:
-        trace_msg = traceback.format_exception(etype=type(ex), value=ex, tb=ex.__traceback__)
-        db_exception = open("db_exception.txt", "a+")
-        log_mess = str(datetime.now())+": TEST   :  "+str(trace_msg)+"\n"
-        db_exception.write(log_mess)
-        db_exception.close()
+# def db_insert_count(func_name, no1=-1, no2=-1, no3=-1):
+#     try:
+#         db = mysql.connect(**config.config_db)
+#         cursor = db.cursor()
+#         query = "INSERT INTO count_use (func_name, no1, no2, no3) VALUES (%s, %s, %s, %s)"
+#         values = (func_name, no1, no2, no3)
+#         cursor.execute(query, values)
+#         db.commit()
+#     except Exception as ex:
+#         trace_msg = traceback.format_exception(etype=type(ex), value=ex, tb=ex.__traceback__)
+#         db_exception = open("db_exception.txt", "a+")
+#         log_mess = str(datetime.now())+": TEST   :  "+str(trace_msg)+"\n"
+#         db_exception.write(log_mess)
+#         db_exception.close()
+
+# CREATE TABLE count_use (
+#     id INT PRIMARY KEY NOT NULL AUTO_INCREMENT,
+#     func_name VARCHAR(50),
+#     no1 INT,
+#     no2 INT,
+#     no3 INT
+# );
 ################## LOGIN Function
 
 def login(sess):
@@ -404,9 +412,6 @@ def get_alpha_info(alpha_id, sess):
         db_insert_log("get_alpha_info",str(trace_msg), response.text + str(alpha_id))
         return None
 
-
-
-# Need to check again, exception at b' ' << Check later. THROTTLED << Check its meaning.
 
 ################## Change ALPHA PROPERTIES related Function
 
