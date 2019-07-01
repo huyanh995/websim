@@ -45,7 +45,7 @@ def ERRORS(sess, response, func_name):
         return True
     elif 'API rate limit exceeded' in str(response): # Exceed maximum times for checking corrs per day.
         db_insert_log(func_name, "API rate limit exceeded",response)
-        time.sleep(5 * 60)
+        time.sleep(random.randint(60, 300))
         return True
     elif 'THROTTLED' in str(response): # Exceed concurrent check submission.
         db_insert_log(func_name, "THROTTLED",response)

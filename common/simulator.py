@@ -152,6 +152,11 @@ def multi_simulate(sess, alpha_codes, top, region, thread_num):
                                             alpha_ids.append(alpha_id)
                                             #print("Thread {}: DONE: ".format(thread_num)+str(alpha_id))
                                             break
+                                        elif alpha_res_json["status"] == 'ERROR': # For debug only
+                                            message = alpha_res_json["message"]
+                                            code = alpha_res_json["code"]
+                                            db_insert_log("TEST DEBUG", message, code)
+                                            return None
                                         else:
                                             return None
                                     else:                                          

@@ -55,7 +55,4 @@ utils.login(sess)
 # response = sess.get(url)
 # print(response.content)
 
-combo_temp = random.choice(config.combo_template)
-print(combo_temp)
-print(len(config.combo_template))
-
+utils.change_name("WwN7kQk", sess, name = 'test_submit')
