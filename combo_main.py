@@ -88,11 +88,12 @@ def combo_simulate(thread_num):
 sess = requests.session()
 utils.login(sess)
 
-for i in range(config.num_combo_threads):
-    _thread.start_new_thread(combo_simulate, (i + 1,))
+# for i in range(config.num_combo_threads):
+#     _thread.start_new_thread(combo_simulate, (i + 1,))
 
-while 1:
-    pass
+# while 1:
+#     pass
 
+combo_simulate(1)
 
 

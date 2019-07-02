@@ -16,13 +16,13 @@ from datetime import datetime
 # Generate alphas from alldata and operators via signal_templates.
 # Output: alpha_code (s). I do not decide yet.
 
-group = ['market', 'sector', 'industry', 'subindustry']
-
+#group = ['market', 'sector', 'industry', 'subindustry']
+group = ['market']
 def get_combo_data(num,data):
     try:
         rndData = []
         for count in range(0, num):
-            num_ope = random.randrange(1, config.num_max_ope)
+            num_ope = int(random.choice(config.num_max_ope))
             rndOpe = random.sample(operators.operators(), num_ope)
             if num_ope > 1:
                 filled_data = "add("

@@ -59,30 +59,50 @@ def signal_simulate(thread_num):
     while True:
         try:
             alpha_codes = signal_generator.get_alphas(data)
-            alpha_ids = simulator.multi_simulate(sess, alpha_codes, top, region, thread_num)
-            if alpha_ids != None:
-                print("ALPHA_IDS :" + str(alpha_ids))
-                for alpha_id in alpha_ids:
-                    results = utils.get_alpha_info(alpha_id, sess)
-                    if results["weight_test"] == 'FAIL':
-                        print("Thread {}: Alpha {}: Not enough performance".format(thread_num, alpha_id))
-                        break
-                    elif results["sharpe"] >= config.min_signal[0] and results["fitness"] >= config.min_signal[1]:
-                        selfcorr = float(utils.check_selfcorr(alpha_id, sess))
-                        if  selfcorr <= config.min_signal[2]:
-                            prodcorr = float(utils.check_prodcorr(alpha_id, sess))
-                            if  prodcorr <= config.min_signal[2]:
-                                results["self_corr"]=selfcorr
-                                results["prod_corr"]=prodcorr
-                                results["theme"] = theme
-                                utils.db_insert_signals(results)
-                                utils.change_name(alpha_id, sess, "signal")
-                    else:
-                        print("Thread {}: Alpha {}: Not enough performance".format(thread_num, alpha_id))
+            #alpha_ids = simulator.multi_simulate(sess, alpha_codes, top, region, thread_num)
+            # alpha_ids = simulator.simulate_alpha(sess, alpha_codes[0], top, region, thread_num)
+            # if alpha_ids != None:
+            #     print("ALPHA_IDS :" + str(alpha_ids))
+            #     for alpha_id in alpha_ids:
+            #         results = utils.get_alpha_info(alpha_id, sess)
+            #         if results["weight_test"] == 'FAIL':
+            #             print("Thread {}: Alpha {}: Not enough performance".format(thread_num, alpha_id))
+            #             break
+            #         elif results["sharpe"] >= config.min_signal[0] and results["fitness"] >= config.min_signal[1]:
+            #             selfcorr = float(utils.check_selfcorr(alpha_id, sess))
+            #             if  selfcorr <= config.min_signal[2]:
+            #                 prodcorr = float(utils.check_prodcorr(alpha_id, sess))
+            #                 if  prodcorr <= config.min_signal[2]:
+            #                     results["self_corr"]=selfcorr
+            #                     results["prod_corr"]=prodcorr
+            #                     results["theme"] = theme
+            #                     utils.db_insert_signals(results)
+            #                     utils.change_name(alpha_id, sess, "signal")
+            #         else:
+            #             print("Thread {}: Alpha {}: Not enough performance".format(thread_num, alpha_id))
+            alpha_id = simulator.simulate_alpha(sess, alpha_codes[0], top, region, thread_num)
+            if alpha_id != None:
+                results = utils.get_alpha_info(alpha_id, sess)
+                if results["weight_test"] == 'FAIL':
+                    print("Thread {}: Alpha {}: Not enough performance".format(thread_num, alpha_id))
+                    break
+                elif results["sharpe"] >= config.min_signal[0] and results["fitness"] >= config.min_signal[1]:
+                    selfcorr = float(utils.check_selfcorr(alpha_id, sess))
+                    if  selfcorr <= config.min_signal[2]:
+                        prodcorr = float(utils.check_prodcorr(alpha_id, sess))
+                        if  prodcorr <= config.min_signal[2]:
+                            results["self_corr"]=selfcorr
+                            results["prod_corr"]=prodcorr
+                            results["theme"] = theme
+                            utils.db_insert_signals(results)
+                            utils.change_name(alpha_id, sess, "signal")
+                else:
+                    print("Thread {}: Alpha {}: Not enough performance".format(thread_num, alpha_id))
         except Exception as ex:
             trace_msg = traceback.format_exception(etype=type(ex), value=ex, tb=ex.__traceback__)
             if 'alpha_ids' in locals() or 'alpha_ids' in globals():
-                utils.db_insert_log("signal_simulate", str(trace_msg), str(alpha_ids)+" - "+ str(type(alpha_ids)) + str(datetime.now()))               
+                #utils.db_insert_log("signal_simulate", str(trace_msg), str(alpha_ids)+" - "+ str(type(alpha_ids)) + str(datetime.now()))  
+                utils.db_insert_log("signal_simulate", str(trace_msg), str(alpha_id)+" - "+ str(type(alpha_id)) + str(datetime.now()))                        
             else:
                 utils.db_insert_log("signal_simulate", str(trace_msg), "")
 
@@ -94,6 +114,7 @@ for i in range(config.num_signal_threads):
 
 while 1:
     pass
+
 
 
 

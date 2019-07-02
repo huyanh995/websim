@@ -18,13 +18,12 @@ websim_time = datetime.now(pytz.timezone('EST5EDT'))
 day_ws_time = str(websim_time).split(" ")[0]
 yesterday, this_month, total = stuff.get_payout(sess)
 num_days = int(day_ws_time.split("-")[-1])
-if num_days > 1:
-    if yesterday != 0:
-        average = round(this_month / num_days,2)
-    else:
-        average = round(this_month / (num_days-1), 2)
-else:
+if num_days == 1:
+    average = 0
+elif num_days == 2:
     average = yesterday
+else:
+    average = round(this_month / (num_days-1),2)
 is_sum, os_sum, prod_sum = stuff.get_summary(sess)
 num_today = stuff.num_alpha_submitted(day_ws_time, sess)
 messages = stuff.get_ann(sess)

@@ -52,9 +52,9 @@ def simulate_alpha(sess, alpha_code, top, region, thread_num):
                 db_insert_log("simulate_alpha", "SIMULATION_LIMIT_EXCEED", str(job_response) )
                 time.sleep(3)
             elif ERRORS(sess, job_response.text, "simulate_alpha_1"):
-                time.sleep(1)
+                time.sleep(3)
             elif "b\'\'" in job_response.text:
-                time.sleep(1.0)
+                time.sleep(1.5)
             else: 
                 job_id = job_response.headers["location"].split("/")[-1]
                 try:
@@ -64,7 +64,7 @@ def simulate_alpha(sess, alpha_code, top, region, thread_num):
                             sim_alpha_url, data="", headers=headers)
                         #print("{}: ".format(tried_res_time) + str(alpha_response))
                         if ERRORS(sess, alpha_response.text, "simulate_alpha_2"):
-                            time.sleep(1)
+                            time.sleep(3)
                         else:
                             if job_id in alpha_response.text: # Condition to know the simulation process is done. Maybe you will find a better solution.
                                 alpha_res_json = json.loads(alpha_response.content)
@@ -74,7 +74,7 @@ def simulate_alpha(sess, alpha_code, top, region, thread_num):
                                     return alpha_id
                                 else:
                                     return None
-                        time.sleep(1.2)
+                        time.sleep(2.0)
                         tried_res_time = tried_res_time + 1
                 except Exception as ex_alpha:
                     trace_msg_alpha = traceback.format_exception(etype=type(ex_alpha), value=ex_alpha, tb=ex_alpha.__traceback__)
@@ -115,9 +115,9 @@ def multi_simulate(sess, alpha_codes, top, region, thread_num):
                 db_insert_log("multi_simulate_1", "SIMULATION_LIMIT_EXCEED", str(job_response) )
                 time.sleep(3)
             elif ERRORS(sess, job_response.text, "multi_simulate_1"):
-                time.sleep(1)
+                time.sleep(3)
             elif "b\'\'" in job_response.text:
-                time.sleep(1.0)
+                time.sleep(1.5)
             else: 
                 parent_job_id = job_response.headers["location"].split("/")[-1]
                 while tried_step2_time < 30*max_tried_times:
@@ -129,7 +129,7 @@ def multi_simulate(sess, alpha_codes, top, region, thread_num):
                         db_insert_log("multi_simulate", "SIMULATION_LIMIT_EXCEED", sim_job_response.text)
                         time.sleep(3)
                     elif ERRORS(sess, sim_job_response.text, "multi_simulate_2"):
-                        time.sleep(1)
+                        time.sleep(3)
                     elif "progress" in sim_job_response.text:
                         time.sleep(1.0)
                         tried_step2_time = tried_step2_time + 1
@@ -144,7 +144,7 @@ def multi_simulate(sess, alpha_codes, top, region, thread_num):
                                         sim_alpha_url, data="", headers=headers)
                                     #print("RESPONSE ALPHA {}: ".format(tried_res_time) + str(alpha_response))
                                     if ERRORS(sess, alpha_response.text, "multi_simulate_2"):
-                                        time.sleep(1)
+                                        time.sleep(3)
                                     elif job_id in alpha_response.text: # Condition to know the simulation process is done. Maybe you will find a better solution.
                                         alpha_res_json = json.loads(alpha_response.content)
                                         if alpha_res_json["status"] == 'COMPLETE' or alpha_res_json["status"] == "WARNING":
@@ -160,7 +160,7 @@ def multi_simulate(sess, alpha_codes, top, region, thread_num):
                                         else:
                                             return None
                                     else:                                          
-                                        time.sleep(1.0)
+                                        time.sleep(2.0)
                                         tried_res_time = tried_res_time + 1
                             except Exception as ex_alpha:
                                 trace_msg_alpha = traceback.format_exception(etype=type(ex_alpha), value=ex_alpha, tb=ex_alpha.__traceback__)

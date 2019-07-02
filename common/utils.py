@@ -49,7 +49,7 @@ def ERRORS(sess, response, func_name):
         return True
     elif 'THROTTLED' in str(response): # Exceed concurrent check submission.
         db_insert_log(func_name, "THROTTLED",response)
-        time.sleep(random.randint(45,120))
+        time.sleep(random.randint(60,300))
         return True
     elif 'maintenance downtime' in str(response): # Websim is became stupid and need fix.
         db_insert_log("MAINTAIN","",response)
@@ -250,7 +250,7 @@ def check_prodcorr(alpha_id, sess):
             check_prodcorr_url = corr_url.format(alpha_id, "prod")
             response = sess.get(check_prodcorr_url, data="", headers=headers)
             if ERRORS(sess, response.text, "check_prodcorr"):
-                time.sleep(1)
+                time.sleep(3)
             elif "prodCorrelation" in response.text:
                 prod_corr_res_obj = json.loads(response.content)["records"]
                 if len(prod_corr_res_obj) > 0:
@@ -263,7 +263,7 @@ def check_prodcorr(alpha_id, sess):
                     return 0.1 # For alphas which cannot find the prodcorr due to there is no correlated alpha in the alpha pool.
                 else:
                     return 0.1
-            time.sleep(1.0)
+            time.sleep(2.0)
             tried_times = tried_times + 1
         except Exception as ex:
             trace_msg = traceback.format_exception(etype=type(ex), value=ex, tb=ex.__traceback__)
@@ -284,7 +284,7 @@ def check_selfcorr(alpha_id, sess):
             check_selfcorr_url = corr_url.format(alpha_id, "self")
             response = sess.get(check_selfcorr_url, data="", headers=headers)
             if ERRORS(sess, response.text, "check_selfcorr"):
-                time.sleep(1)
+                time.sleep(3)
             elif "selfCorrelation" in response.text:
                 self_corr_list = json.loads(response.content)["records"]
                 if len(self_corr_list) > 0:
@@ -294,7 +294,7 @@ def check_selfcorr(alpha_id, sess):
                 else:
                     self_corr = 0.1
                     return self_corr
-            time.sleep(1.0)
+            time.sleep(2.0)
             tried_times = tried_times + 1
         except Exception as ex:
             trace_msg = traceback.format_exception(etype=type(ex), value=ex, tb=ex.__traceback__)
@@ -325,7 +325,7 @@ def check_submission(alpha_id, sess):
             elif 'PENDING' in response.text:
                 time.sleep(3)
             elif ERRORS(sess, response.text, "check_submission"):
-                time.sleep(1)
+                time.sleep(3)
             elif 'checks' in response.text:
                 list_test = json.loads(response.content)["is"]["checks"]
                 for check in list_test:
@@ -340,7 +340,7 @@ def check_submission(alpha_id, sess):
                         else:
                             prod_corr = check['value']
                 return True, self_corr, prod_corr
-            time.sleep(1.5)
+            time.sleep(2.5)
             tried_times = tried_times + 1
         except Exception as ex:
             trace_msg = traceback.format_exception(etype=type(ex), value=ex, tb=ex.__traceback__)
@@ -365,7 +365,7 @@ def get_alpha_info(alpha_id, sess):
             alpha_url_info = alpha_url.format(alpha_id)# + str(alpha_id)
             response = sess.get(alpha_url_info, data="", headers=headers)
             if ERRORS(sess, response.text, "get_alpha_info"):
-                time.sleep(1)
+                time.sleep(3)
             elif alpha_id in response.text:
                 alpha_res_json = json.loads(response.content)
                 alpha_info = {}
@@ -405,7 +405,7 @@ def get_alpha_info(alpha_id, sess):
                 alpha_info["theme"] = 0
                 return alpha_info
             else:
-                time.sleep(1)
+                time.sleep(3)
                 tried_time = tried_time + 1
     except Exception as ex:
         trace_msg = traceback.format_exception(etype=type(ex), value=ex, tb=ex.__traceback__)

@@ -61,7 +61,7 @@ elif mode == "3":
             selfcorr = utils.check_selfcorr(alpha_id[0], sess)
             if selfcorr <= config.min_signal[2]: 
                 print("Pass: {}".format(selfcorr))
-                cursor.execute(update_query.format(selfcorr, "\'prod_corr\'", alpha_id[0])) # Kiem tra lai
+                cursor.execute(update_query.format(selfcorr, "prod_corr", alpha_id[0])) # Kiem tra lai
                 db.commit()
             else: # Greater than threshold >> Delete
                 print("Fail: {}".format(selfcorr))
@@ -72,7 +72,7 @@ elif mode == "3":
             prodcorr = utils.check_prodcorr(alpha_id[0], sess)
             if prodcorr <= config.min_signal[2]:
                 print("Pass: {}".format(prodcorr))
-                cursor.execute(update_query.format("\'self_corr\'", prodcorr, alpha_id[0]))
+                cursor.execute(update_query.format("self_corr", prodcorr, alpha_id[0]))
                 db.commit()
             else:
                 print("Fail: {}".format(prodcorr))

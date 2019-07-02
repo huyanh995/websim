@@ -54,5 +54,11 @@ utils.login(sess)
 # print(url)
 # response = sess.get(url)
 # print(response.content)
+# submitted_id = "J0bxGJW"
+# alpha_ids = ["6PqRmmp", "WwN7kQk"]
+# for alpha_id in alpha_ids:
+#     utils.change_name(alpha_id, sess, name = 'test_submit')
 
-utils.change_name("WwN7kQk", sess, name = 'test_submit')
+alpha_info = utils.get_alpha_info("J0bxGJW", sess)
+alpha_info["submit_day"] = '2019-07-01'
+utils.db_insert_submitted(alpha_info)
