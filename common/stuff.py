@@ -73,7 +73,7 @@ update_query = 'UPDATE combo SET self_corr = {}, prod_corr = {} WHERE alpha_id =
 select_query = 'SELECT alpha_id FROM combo WHERE self_corr > 0 and prod_corr < 0.7 ORDER BY {} DESC'.format(config.combo_criteria)
 delete_query = 'DELETE FROM combo WHERE alpha_id = \'{}\''
 count_query = 'SELECT count(*) FROM combo WHERE self_corr > 0 and prod_corr < 0.7'
-
+update_combo_query = 'UPDATE combo SET status = \'FAIL\' WHERE alpha_id = \'{}\''
 def re_check(sess, num = 15):
     start = 0
     try:
@@ -93,7 +93,7 @@ def re_check(sess, num = 15):
                 print("Number of qualified alpha: {}/{}".format(start, num))
             elif result == False:
                 print("RESULT: Fail : " + str(selfcorr) + " : " +str(prodcorr))
-                cursor.execute(delete_query.format(alpha_id[0]))
+                cursor.execute(update_combo_query.format(alpha_id[0]))
                 db.commit()
                 utils.change_name(alpha_id[0], sess, name = 'FAILED')
             else:
@@ -123,7 +123,7 @@ def re_check_all(sess):
             elif result == False:
                 print("RESULT: Fail : " + str(selfcorr) + " : " +str(prodcorr))
                 #print(delete_query.format(alpha_id[0]))
-                cursor.execute(delete_query.format(alpha_id[0]))
+                cursor.execute(update_combo_query.format(alpha_id[0]))
                 db.commit()
                 utils.change_name(alpha_id[0], sess, name = 'FAILED')
             else:

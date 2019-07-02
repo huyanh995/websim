@@ -403,6 +403,7 @@ def get_alpha_info(alpha_id, sess):
                 alpha_info["drawdown"] = alpha_res_json["is"]["drawdown"]
                 alpha_info["status"] = alpha_res_json["status"]
                 alpha_info["theme"] = 0
+                alpha_info["status"] = ""
                 return alpha_info
             else:
                 time.sleep(3)

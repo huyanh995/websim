@@ -55,10 +55,14 @@ utils.login(sess)
 # response = sess.get(url)
 # print(response.content)
 # submitted_id = "J0bxGJW"
-# alpha_ids = ["6PqRmmp", "WwN7kQk"]
-# for alpha_id in alpha_ids:
-#     utils.change_name(alpha_id, sess, name = 'test_submit')
+alpha_ids = ["VwYM8jV", "2qvapbb"]
+for alpha_id in alpha_ids:
+    utils.change_name(alpha_id, sess, name = 'fail_submit_test')
 
-alpha_info = utils.get_alpha_info("J0bxGJW", sess)
-alpha_info["submit_day"] = '2019-07-01'
-utils.db_insert_submitted(alpha_info)
+
+alpha_id = "J0bxGJW"
+alpha_info = utils.get_alpha_info(alpha_id, sess)
+alpha_info["self_corr"] = 0.5683
+alpha_info["prod_corr"] = 0.6375
+alpha_info["theme"] = 3
+utils.db_insert_combo(alpha_info)

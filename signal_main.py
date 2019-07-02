@@ -58,7 +58,7 @@ print("Apply theme: {}".format(answer)+"\n")
 def signal_simulate(thread_num):
     while True:
         try:
-            alpha_codes = signal_generator.get_alphas(data)
+            #alpha_codes = signal_generator.get_alphas(data)
             #alpha_ids = simulator.multi_simulate(sess, alpha_codes, top, region, thread_num)
             # alpha_ids = simulator.simulate_alpha(sess, alpha_codes[0], top, region, thread_num)
             # if alpha_ids != None:
@@ -80,7 +80,8 @@ def signal_simulate(thread_num):
             #                     utils.change_name(alpha_id, sess, "signal")
             #         else:
             #             print("Thread {}: Alpha {}: Not enough performance".format(thread_num, alpha_id))
-            alpha_id = simulator.simulate_alpha(sess, alpha_codes[0], top, region, thread_num)
+            alpha_code = signal_generator.get_alphas(data)
+            alpha_id = simulator.simulate_alpha(sess, alpha_code, top, region, thread_num)
             if alpha_id != None:
                 results = utils.get_alpha_info(alpha_id, sess)
                 if results["weight_test"] == 'FAIL':
@@ -109,12 +110,15 @@ def signal_simulate(thread_num):
 sess = requests.session()
 utils.login(sess)
 
-for i in range(config.num_signal_threads):
-    _thread.start_new_thread(signal_simulate, (i + 1,))
+# for i in range(config.num_signal_threads):
+#     _thread.start_new_thread(signal_simulate, (i + 1,))
 
-while 1:
-    pass
-
+# while 1:
+#     pass
+index = 0
+while index < 5:
+    signal_simulate(1)
+    index = index + 1
 
 
 

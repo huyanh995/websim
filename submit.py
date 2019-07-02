@@ -89,11 +89,28 @@ def db_delete_combo(alpha_id):
         db_exception.write(log_mess)
         db_exception.close()
 
+def db_update_combo(alpha_id):
+    # This function will record all exception of below functions into database (For LOGIN only, testing for a while and delete it after)
+    # It's need to create database first, following the init.sql file.
+    try:
+        db = mysql.connect(**config.config_db)
+        cursor = db.cursor()
+        update_query = 'UPDATE combo SET status = \'FAIL\' WHERE alpha_id = \'{}\''.format(alpha_id)
+        cursor.execute(update_query)
+        db.commit()
+        db.close()
+    except Exception as ex:
+        trace_msg = traceback.format_exception(etype=type(ex), value=ex, tb=ex.__traceback__)
+        db_exception = open("db_exception.txt", "a+")
+        log_mess = str(datetime.now())+": DELETE COMBO :  "+str(trace_msg)+"\n"
+        db_exception.write(log_mess)
+        db_exception.close()
+
 def auto_submit(mode, num_today, sess):
     try:
         max_num_alpha = 5
         num_alpha = num_today
-        select_query = 'SELECT alpha_id FROM combo WHERE self_corr > 0 AND prod_corr > 0 ORDER BY {} DESC LIMIT {}'
+        select_query = 'SELECT alpha_id FROM combo WHERE self_corr > 0 AND prod_corr > 0 and status != \'FAIL\' ORDER BY {} DESC LIMIT {}'
         if mode == "1":
             while num_alpha < max_num_alpha:
                 alpha_id = str(input("Alpha ID: "))
@@ -104,7 +121,8 @@ def auto_submit(mode, num_today, sess):
                     utils.change_name(alpha_id, sess, name = 'submitted')
                     print("Alpha {} submitted successfully. ({}/5)".format(alpha_id, num_alpha))
                 elif result == False and tried_time < max_tried_time:
-                    db_delete_combo(alpha_id)
+                    #db_delete_combo(alpha_id)
+                    db_update_combo(alpha_id)
                     print("Can not submit alpha {}.".format(alpha_id))
                 elif result == False and tried_time == max_tried_time:
                     print("Time-out")
@@ -126,7 +144,7 @@ def auto_submit(mode, num_today, sess):
                     utils.change_name(alpha_id[0], sess, name = 'submitted')
                     print("Alpha {} submitted successfully. ({}/5)".format(alpha_id[0], num_alpha))
                 elif result == False and tried_time < max_tried_time:
-                    db_delete_combo(alpha_id[0])
+                    db_update_combo(alpha_id[0])
                     print("Can not submit alpha {}.".format(alpha_id[0]))
                 elif result == False and tried_time == max_tried_time:
                     print("Time-out")
@@ -150,7 +168,7 @@ def auto_submit(mode, num_today, sess):
                     utils.change_name(alpha_id[0][0], sess, name = 'submitted')
                     print("Alpha {} submitted successfully. ({}/5)".format(alpha_id[0][0], num_alpha))
                 elif result == False and tried_time < max_tried_time:
-                    db_delete_combo(alpha_id[0][0])
+                    db_update_combo(alpha_id[0][0])
                     print("Can not submit alpha {}.".format(alpha_id[0][0]))
                 elif result == False and tried_time == max_tried_time:
                     print("Time-out")

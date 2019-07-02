@@ -16,8 +16,8 @@ from datetime import datetime
 # Generate alphas from alldata and operators via signal_templates.
 # Output: alpha_code (s). I do not decide yet.
 
-#group = ['market', 'sector', 'industry', 'subindustry']
-group = ['market']
+group = ['market', 'sector', 'industry', 'subindustry']
+#group = ['market']
 def get_combo_data(num,data):
     try:
         rndData = []
@@ -49,17 +49,21 @@ def get_combo_data(num,data):
 
 def get_alphas(data):
     try:
-        alphas = []
+        #alphas = []
         rndTemplate = random.choice(config.signal_template) 
         rndData = get_combo_data(rndTemplate[1], data) # Number of data
         rndGroup = random.choice(group)
         if rndTemplate[2] == 0:
-            for rndGroupNeutralize in group:
-                alphas.append(rndTemplate[0].format(*rndData, rndGroupNeutralize))
+            # for rndGroupNeutralize in group:
+            #     alphas.append(rndTemplate[0].format(*rndData, rndGroupNeutralize))
+            alpha = rndTemplate[0].format(*rndData, 'market')
         elif rndTemplate[2] == 1:
-            for rndGroupNeutralize in group:
-                alphas.append(rndTemplate[0].format(*rndData, rndGroup, rndGroupNeutralize))
-        return alphas
+            # for rndGroupNeutralize in group:
+            #     alphas.append(rndTemplate[0].format(*rndData, rndGroup, rndGroupNeutralize))
+            alpha = rndTemplate[0].format(*rndData, rndGroup, 'market')
+        #return alphas
+        return alpha
     except Exception as ex:
         trace_msg = traceback.format_exception(etype=type(ex), value=ex, tb=ex.__traceback__)
-        utils.db_insert_log("get_alphas", str(trace_msg), str(alphas))
+        #utils.db_insert_log("get_alphas", str(trace_msg), str(alphas))
+        utils.db_insert_log("get_alphas", str(trace_msg), str(alpha))
