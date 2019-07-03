@@ -250,7 +250,7 @@ def check_prodcorr(alpha_id, sess):
             check_prodcorr_url = corr_url.format(alpha_id, "prod")
             response = sess.get(check_prodcorr_url, data="", headers=headers)
             if ERRORS(sess, response.text, "check_prodcorr"):
-                time.sleep(3)
+                time.sleep(1)
             elif "prodCorrelation" in response.text:
                 prod_corr_res_obj = json.loads(response.content)["records"]
                 if len(prod_corr_res_obj) > 0:
@@ -284,7 +284,7 @@ def check_selfcorr(alpha_id, sess):
             check_selfcorr_url = corr_url.format(alpha_id, "self")
             response = sess.get(check_selfcorr_url, data="", headers=headers)
             if ERRORS(sess, response.text, "check_selfcorr"):
-                time.sleep(3)
+                time.sleep(1)
             elif "selfCorrelation" in response.text:
                 self_corr_list = json.loads(response.content)["records"]
                 if len(self_corr_list) > 0:
@@ -325,7 +325,7 @@ def check_submission(alpha_id, sess):
             elif 'PENDING' in response.text:
                 time.sleep(3)
             elif ERRORS(sess, response.text, "check_submission"):
-                time.sleep(3)
+                time.sleep(1)
             elif 'checks' in response.text:
                 list_test = json.loads(response.content)["is"]["checks"]
                 for check in list_test:
@@ -365,7 +365,7 @@ def get_alpha_info(alpha_id, sess):
             alpha_url_info = alpha_url.format(alpha_id)# + str(alpha_id)
             response = sess.get(alpha_url_info, data="", headers=headers)
             if ERRORS(sess, response.text, "get_alpha_info"):
-                time.sleep(3)
+                time.sleep(1)
             elif alpha_id in response.text:
                 alpha_res_json = json.loads(response.content)
                 alpha_info = {}

@@ -53,7 +53,7 @@ def simulate_alpha(sess, alpha_code, top, region, thread_num):
                 db_insert_log("simulate_alpha", "SIMULATION_LIMIT_EXCEED", str(job_response) )
                 time.sleep(3)
             elif ERRORS(sess, job_response.text, "simulate_alpha_1"):
-                time.sleep(3)
+                time.sleep(1)
             elif "b\'\'" in job_response.text:
                 time.sleep(1.5)
             else: 
@@ -66,7 +66,7 @@ def simulate_alpha(sess, alpha_code, top, region, thread_num):
                         #print("RESPONSE: {}".format(str(alpha_response)+str(alpha_response.text)))
                         #print("{}: ".format(tried_res_time) + str(alpha_response))
                         if ERRORS(sess, alpha_response.text, "simulate_alpha_2"):
-                            time.sleep(3)
+                            time.sleep(1)
                         else:
                             if job_id in alpha_response.text: # Condition to know the simulation process is done. Maybe you will find a better solution.
                                 alpha_res_json = json.loads(alpha_response.content)
@@ -154,11 +154,6 @@ def multi_simulate(sess, alpha_codes, top, region, thread_num):
                                             alpha_ids.append(alpha_id)
                                             #print("Thread {}: DONE: ".format(thread_num)+str(alpha_id))
                                             break
-                                        elif alpha_res_json["status"] == 'ERROR': # For debug only
-                                            message = alpha_res_json["message"]
-                                            code = alpha_res_json["code"]
-                                            db_insert_log("TEST DEBUG", message, code)
-                                            return None
                                         else:
                                             return None
                                     else:                                          

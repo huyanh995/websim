@@ -95,7 +95,7 @@ def db_update_combo(alpha_id):
     try:
         db = mysql.connect(**config.config_db)
         cursor = db.cursor()
-        update_query = 'UPDATE combo SET status = \'FAIL\' WHERE alpha_id = \'{}\''.format(alpha_id)
+        update_query = 'UPDATE combo SET flag = -1 WHERE alpha_id = \'{}\''.format(alpha_id)
         cursor.execute(update_query)
         db.commit()
         db.close()
@@ -110,7 +110,7 @@ def auto_submit(mode, num_today, sess):
     try:
         max_num_alpha = 5
         num_alpha = num_today
-        select_query = 'SELECT alpha_id FROM combo WHERE self_corr > 0 AND prod_corr > 0 and status != \'FAIL\' ORDER BY {} DESC LIMIT {}'
+        select_query = 'SELECT alpha_id FROM combo WHERE self_corr > 0 AND prod_corr > 0 ORDER BY {} DESC LIMIT {}'
         if mode == "1":
             while num_alpha < max_num_alpha:
                 alpha_id = str(input("Alpha ID: "))

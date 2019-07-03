@@ -55,14 +55,47 @@ utils.login(sess)
 # response = sess.get(url)
 # print(response.content)
 # submitted_id = "J0bxGJW"
-alpha_ids = ["VwYM8jV", "2qvapbb"]
+alpha_ids = ['1VVd9dk',
+'2qaJj7x',
+'2qQ0dbZ',
+'3Y627dX',
+'6Pagj1Y',
+'6PqwZQO',
+'7qV0KwZ',
+'9PJE5er',
+'9PJxe9q',
+'a23k5q2',
+'b2vd3Qm',
+'b2Wpm8M',
+'d87rnaY',
+'d8E0mQv',
+'E0qrOA0',
+'J0bxGJW',
+'J0bzAMm',
+'jl17Z5k',
+'kkmkYdO',
+'LbgnzLe',
+'LbxPWx6',
+'MlKAPQn',
+'ow3rzWv',
+'Ow52RZv',
+'PrXwlVp',
+'qkvWQaP',
+'r6Ajpqd',
+'r6bzL5J',
+'r6JVQ6d',
+'RZ0Q291',
+'RZdmbXo',
+'vnd66ra',
+'vnea80w',
+'vnee6Jr',
+'VwOmKXA',
+'ZwLKJk0',
+]
+
 for alpha_id in alpha_ids:
-    utils.change_name(alpha_id, sess, name = 'fail_submit_test')
-
-
-alpha_id = "J0bxGJW"
-alpha_info = utils.get_alpha_info(alpha_id, sess)
-alpha_info["self_corr"] = 0.5683
-alpha_info["prod_corr"] = 0.6375
-alpha_info["theme"] = 3
-utils.db_insert_combo(alpha_info)
+    db = mysql.connect(**config.config_db)
+    cursor = db.cursor()
+    cursor.execute('UPDATE combo SET flag = -1 WHERE alpha_id = \'{}\''.format(alpha_id))
+    db.commit()
+db.close()
