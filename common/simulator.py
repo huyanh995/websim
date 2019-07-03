@@ -47,7 +47,7 @@ def simulate_alpha(sess, alpha_code, top, region, thread_num):
             print("Thread {}: SIMULATING: ".format(thread_num) + str(alpha_code))
             job_response = sess.post(
                 job_sim_url, data=json.dumps(payload), headers=headers)
-            print("INITIAL: {}".format(str(job_response)+":"+str(job_response.text)))
+            #print("INITIAL: {}".format(str(job_response)+":"+str(job_response.text)))
             # Get JSON string from server
             if 'SIMULATION_LIMIT_EXCEED' in job_response.text:
                 db_insert_log("simulate_alpha", "SIMULATION_LIMIT_EXCEED", str(job_response) )
@@ -63,7 +63,7 @@ def simulate_alpha(sess, alpha_code, top, region, thread_num):
                         sim_alpha_url = sim_url.format(job_id) 
                         alpha_response = sess.get(
                             sim_alpha_url, data="", headers=headers)
-                        print("RESPONSE: {}".format(str(alpha_response)+str(alpha_response.text)))
+                        #print("RESPONSE: {}".format(str(alpha_response)+str(alpha_response.text)))
                         #print("{}: ".format(tried_res_time) + str(alpha_response))
                         if ERRORS(sess, alpha_response.text, "simulate_alpha_2"):
                             time.sleep(3)
