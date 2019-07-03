@@ -23,7 +23,10 @@ if num_days == 1:
 elif num_days == 2:
     average = yesterday
 else:
-    average = round(this_month / (num_days-1),2)
+    if yesterday == 0:
+        average = round(this_month / (num_days-2),2)
+    else:
+        average = round(this_month / (num_days-1), 2)
 is_sum, os_sum, prod_sum = stuff.get_summary(sess)
 num_today = stuff.num_alpha_submitted(day_ws_time, sess)
 messages = stuff.get_ann(sess)

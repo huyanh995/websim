@@ -115,10 +115,9 @@ utils.login(sess)
 
 # while 1:
 #     pass
-index = 0
-while index < 5:
-    signal_simulate(1)
-    index = index + 1
+
+signal_simulate(1)
+
 
 
 
