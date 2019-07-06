@@ -31,7 +31,7 @@ is_sum, os_sum, prod_sum = stuff.get_summary(sess)
 num_today = stuff.num_alpha_submitted(day_ws_time, sess)
 messages = stuff.get_ann(sess)
 num_signal, num_combo, diff_signal, diff_combo = stuff.get_db_stat(day_ws_time)
-
+num_failed_combo, num_failed_signal = stuff.get_failed_status(sess)
 print("\nTODAY STATUS")
 print("\nWorldQuant Time: " + str(websim_time).split(".")[0])
 
@@ -44,8 +44,8 @@ print("Total        " + "$"+str(total))
 
 print("\nALPHAS       {}/5".format(num_today))
 print("----------------------------------")
-print("Combo        " + str(num_combo) + " (+{})".format(diff_combo))
-print("Signal       " + str(num_signal)+ " (+{})".format(diff_signal))
+print("Combo        " + str(num_combo).ljust(6," ") + "+{}".format(diff_combo).ljust(5," ") + str(num_failed_combo))
+print("Signal       " + str(num_signal).ljust(6," ") + "+{}".format(diff_signal).ljust(5," ") + str(num_failed_signal))
 print("IS           " + str(is_sum))
 print("OS           " + str(os_sum-config.num_alphathon))
 

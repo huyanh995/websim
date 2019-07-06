@@ -176,3 +176,18 @@ def get_payout_all(sess):
             utils.db_insert_log("get_payout", str(trace_msg), response.text)
         else:
             utils.db_insert_log("get_payout", str(trace_msg), "")
+
+def get_failed_status(sess):
+    try:
+        select_failed_combo_query = "SELECT COUNT(*) FROM combo WHERE self_corr < 0 or prod_corr < 0 and flag > 0"
+        select_failed_signal_query = "SELECT COUNT(*) FROM signals WHERE self_corr < 0 or prod_corr < 0"
+        db = mysql.connect(**config.config_db)
+        cursor = db.cursor()
+        cursor.execute(select_failed_combo_query)
+        num_failed_combo = cursor.fetchall()[0][0]
+        cursor.execute(select_failed_signal_query)
+        num_failed_signal = cursor.fetchall()[0][0]
+        return num_failed_combo, num_failed_signal
+    except Exception as ex:
+        trace_msg = traceback.format_exception(etype=type(ex), value=ex, tb=ex.__traceback__)
+        utils.db_insert_log("FAILED ALPHAS: ", str(trace_msg), "")
