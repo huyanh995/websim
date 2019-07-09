@@ -448,14 +448,14 @@ def set_theme(alpha_code, region, data):
     try:
         multiplier = 0
         #if "ASI" in settings or "EUR" in settings:
-        if region == "ASI" or region == "EUR":
-            multiplier = multiplier + 2
-        if any(err in alpha_code for err in data):
-            if multiplier > 0:
-                multiplier = multiplier + 1
-            else:
-                multiplier = multiplier + 2
-        print("TEST THEME {}".format(multiplier))
+        # if region == "ASI" or region == "EUR":
+        #     multiplier = multiplier + 2
+        # if any(err in alpha_code for err in data):
+        #     if multiplier > 0:
+        #         multiplier = multiplier + 1
+        #     else:
+        #         multiplier = multiplier + 2
+        # print("TEST THEME {}".format(multiplier))
         return multiplier
     except Exception as ex:
         trace_msg = traceback.format_exception(etype=type(ex), value=ex, tb=ex.__traceback__)
