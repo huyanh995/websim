@@ -8,6 +8,9 @@ from common import config, utils, stuff
 import mysql.connector as mysql
 from datetime import datetime, timedelta
 import pytz
+import time
+
+start_time = time.time()
 
 # Checking status including number of alphas, payout, and announcements.
 
@@ -79,3 +82,5 @@ if yesterday != 0 and num_today == 0:
     db.commit()
     db.close()
 
+
+print("--- %s seconds ---" % (time.time() - start_time))
