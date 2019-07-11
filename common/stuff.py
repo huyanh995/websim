@@ -187,7 +187,23 @@ def get_failed_status(sess):
         num_failed_combo = cursor.fetchall()[0][0]
         cursor.execute(select_failed_signal_query)
         num_failed_signal = cursor.fetchall()[0][0]
+        db.close()
         return num_failed_combo, num_failed_signal
     except Exception as ex:
         trace_msg = traceback.format_exception(etype=type(ex), value=ex, tb=ex.__traceback__)
         utils.db_insert_log("FAILED ALPHAS: ", str(trace_msg), "")
+
+def get_system_info(day):
+    try:
+        db = mysql.connect(**config.config_db)
+        cursor = db.cursor()
+        cursor.execute("SELECT COUNT(*) FROM log")
+        total_log_count = cursor.fetchall()[0][0]
+        cursor.execute("SELECT COUNT(*) FROM log WHERE logged_time LIKE \'%{}%\'".format(day))
+        today_log_count = cursor.fetchall()[0][0]
+        cursor.execute("SELECT COUNT(*) FROM login_log WHERE logged_time LIKE \'%{}%\'".format(day))
+        today_login_count = cursor.fetchall()[0][0]
+        return total_log_count, today_log_count, today_login_count
+    except Exception as ex:
+        trace_msg = traceback.format_exception(etype=type(ex), value=ex, tb=ex.__traceback__)
+        utils.db_insert_log("SYS STAT: ", str(trace_msg), "")

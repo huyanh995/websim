@@ -50,52 +50,15 @@ utils.login(sess)
 #     else:
 #         utils.change_name(alpha_id, sess, name = "anonymous")
 
-
-# print(url)
-# response = sess.get(url)
-# print(response.content)
-# submitted_id = "J0bxGJW"
-alpha_ids = ['1VVd9dk',
-'2qaJj7x',
-'2qQ0dbZ',
-'3Y627dX',
-'6Pagj1Y',
-'6PqwZQO',
-'7qV0KwZ',
-'9PJE5er',
-'9PJxe9q',
-'a23k5q2',
-'b2vd3Qm',
-'b2Wpm8M',
-'d87rnaY',
-'d8E0mQv',
-'E0qrOA0',
-'J0bxGJW',
-'J0bzAMm',
-'jl17Z5k',
-'kkmkYdO',
-'LbgnzLe',
-'LbxPWx6',
-'MlKAPQn',
-'ow3rzWv',
-'Ow52RZv',
-'PrXwlVp',
-'qkvWQaP',
-'r6Ajpqd',
-'r6bzL5J',
-'r6JVQ6d',
-'RZ0Q291',
-'RZdmbXo',
-'vnd66ra',
-'vnea80w',
-'vnee6Jr',
-'VwOmKXA',
-'ZwLKJk0',
-]
-
-for alpha_id in alpha_ids:
-    db = mysql.connect(**config.config_db)
-    cursor = db.cursor()
-    cursor.execute('UPDATE combo SET flag = -1 WHERE alpha_id = \'{}\''.format(alpha_id))
-    db.commit()
-db.close()
+day = '2019-07-11'
+db = mysql.connect(**config.config_db)
+cursor = db.cursor()
+cursor.execute("SELECT COUNT(*) FROM log")
+a = cursor.fetchall()[0][0]
+cursor.execute("SELECT COUNT(*) FROM log WHERE logged_time LIKE \'%{}%\'".format(day))
+b = cursor.fetchall()[0][0]
+cursor.execute("SELECT COUNT(*) FROM login_log WHERE logged_time LIKE \'%{}%\'".format(day))
+c = cursor.fetchall()[0][0]
+print(a)
+print(b)
+print(c)
