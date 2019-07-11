@@ -10,6 +10,7 @@ from datetime import datetime, timedelta
 import pytz
 from concurrent.futures import ProcessPoolExecutor as Executor
 
+start_time = time.time()
 # Checking status including number of alphas, payout, and announcements.
 
 sess = requests.session()
@@ -94,3 +95,5 @@ if yesterday != 0 and num_today == 0:
     db.commit()
     db.close()
 
+
+print("--- %s seconds ---" % (time.time() - start_time))
