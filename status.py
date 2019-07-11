@@ -33,10 +33,6 @@ messages = stuff.get_ann(sess)
 num_signal, num_combo, diff_signal, diff_combo = stuff.get_db_stat(day_ws_time)
 num_failed_combo, num_failed_signal = stuff.get_failed_status(sess)
 total_log_count, today_log_count, today_log_in_count = stuff.get_system_info(day_ws_time)
-if today_log_count > 500 or today_log_in_count > 500:
-    message = "WARNING"
-else:
-    message = ""
 
 print("\nTODAY STATUS")
 print("\nWorldQuant Time: " + str(websim_time).split(".")[0])
@@ -55,17 +51,24 @@ print("Signal       " + str(num_signal).ljust(9," ") + "+{}".format(diff_signal)
 print("IS           " + str(is_sum))
 print("OS           " + str(os_sum-config.num_alphathon))
 
-print("\nSYSTEM       {}".format(message))
-print("----------------------------------")
-print("Today log    " + str(today_log_count))
-print("Today login  " + str(today_log_in_count))
-print("Total log    " + str(total_log_count))
+
+if today_log_count > 500 or today_log_in_count > 500:
+    message = "WARNING"
+    print("\nSYSTEM       {}".format(message))
+    print("----------------------------------")
+    print("Today log    " + str(today_log_count))
+    print("Today login  " + str(today_log_in_count))
+    print("Total log    " + str(total_log_count))
+else:
+    message = "GOOD"
+    print("\nSYSTEM       {}".format(message))
+    print("----------------------------------")
 
 print("\nANNOUNCEMENTS")
 print("----------------------------------")
 for mess in messages:
     print(str(mess["dateCreated"]).split("T")[0] + "   " + mess["title"])
-print("\n")
+#print("\n")
 
 
 if yesterday != 0 and num_today == 0:
@@ -76,3 +79,5 @@ if yesterday != 0 and num_today == 0:
     cursor.execute(update_payout_query.format(yesterday, date_yesterday))
     db.commit()
     db.close()
+
+
