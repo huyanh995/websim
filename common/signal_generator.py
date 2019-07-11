@@ -56,11 +56,12 @@ def get_alphas(data):
         if rndTemplate[2] == 0:
             # for rndGroupNeutralize in group:
             #     alphas.append(rndTemplate[0].format(*rndData, rndGroupNeutralize))
-            alpha = rndTemplate[0].format(*rndData, 'market')
+            alpha = rndTemplate[0].format(*rndData, rndGroup)
         elif rndTemplate[2] == 1:
             # for rndGroupNeutralize in group:
             #     alphas.append(rndTemplate[0].format(*rndData, rndGroup, rndGroupNeutralize))
-            alpha = rndTemplate[0].format(*rndData, rndGroup, 'market')
+            rndGroup_2 = random.choice(group)
+            alpha = rndTemplate[0].format(*rndData, rndGroup_2, rndGroup)
         #return alphas
         return alpha
     except Exception as ex:
