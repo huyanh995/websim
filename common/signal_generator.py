@@ -17,7 +17,7 @@ from datetime import datetime
 # Output: alpha_code (s). I do not decide yet.
 
 group = ['market', 'sector', 'industry', 'subindustry']
-#group = ['market']
+neutral_group = ['market', 'industry']
 def get_combo_data(num,data):
     try:
         rndData = []
@@ -52,7 +52,7 @@ def get_alphas(data):
         #alphas = []
         rndTemplate = random.choice(config.signal_template) 
         rndData = get_combo_data(rndTemplate[1], data) # Number of data
-        rndGroup = random.choice(group)
+        rndGroup = random.choice(neutral_group)
         if rndTemplate[2] == 0:
             # for rndGroupNeutralize in group:
             #     alphas.append(rndTemplate[0].format(*rndData, rndGroupNeutralize))
