@@ -1,64 +1,96 @@
 import requests
 import json
+import time
+import threading
 import traceback
-from common import utils, config, stuff
-from data import alldata
-from datetime import datetime, timedelta
-import mysql.connector as mysql
-import pytz
-import math
 import random
+from common import config, utils, stuff
+import mysql.connector as mysql
+from datetime import datetime, timedelta
+import pytz
+from concurrent.futures import ProcessPoolExecutor as Executor
 
-
-# def db_update_submitted():
-#     # This function will record all exception of below functions into database (For LOGIN only, testing for a while and delete it after)
-#     # It's need to create database first, following the init.sql file.
-#     try:
-#         select_query = 'SELECT alpha_id, self_corr, prod_corr FROM combo WHERE submitted = \'SUBMITTED\''
-#         db = mysql.connect(**config.config_db)
-#         cursor = db.cursor()
-#         cursor.execute(select_query)
-#         records = cursor.fetchall()
-#         for record in records:
-#             update_query = 'UPDATE submitted SET self_corr = \'{}\', prod_corr = \'{}\' WHERE alpha_id = \'{}\''.format(record[1], record[2], record[0])
-#             print(update_query)
-#             cursor.execute(update_query)
-#             db.commit()
-#     except Exception as ex:
-#         trace_msg = traceback.format_exception(etype=type(ex), value=ex, tb=ex.__traceback__)
-#         print(trace_msg)
+# Checking status including number of alphas, payout, and announcements.
 
 sess = requests.session()
 utils.login(sess)
+websim_time = datetime.now(pytz.timezone('EST5EDT'))
+day_ws_time = str(websim_time).split(" ")[0]
+try:
+    with Executor() as executor:
+        result1 = executor.submit(stuff.get_payout, sess)
+        result2 = executor.submit(stuff.get_summary, sess)
+        result3 = executor.submit(stuff.num_alpha_submitted, day_ws_time, sess)
+        result4 = executor.submit(stuff.get_ann, sess)
+        result5 = executor.submit(stuff.get_db_stat, day_ws_time)
+        result6 = executor.submit(stuff.get_failed_status, sess)
+        result7 = executor.submit(stuff.get_system_info, day_ws_time)
 
-# response = sess.get('https://api.worldquantvrc.com/users/self/alphas?limit=30&offset=0&stage=IS&name~potential&order=-is.fitness&hidden=false')
-# info_res_json = json.loads(response.content)
-# results = info_res_json["results"]
-# for result in results:
-#     if result["grade"] == 'SPECTACULAR' or result["grade"] == 'EXCELLENT':
-#         alpha_id = result["id"]
-#         alpha_info = utils.get_alpha_info(alpha_id, sess)
-#         test, selfcorr, prodcorr, _ = utils.check_submission(alpha_id, sess)
-#         print(str(test)+" : "+str(selfcorr)+" : "+str(prodcorr))
-#         if test == True:
-#             alpha_info["self_corr"] = selfcorr
-#             alpha_info["prod_corr"] = prodcorr
-#             utils.db_insert_combo(alpha_info)
-#             utils.change_name(alpha_id, sess, name = "can_submit")
-#         else:
-#             utils.change_name(alpha_id, sess, name = "failed")
-#     else:
-#         utils.change_name(alpha_id, sess, name = "anonymous")
+        yesterday, this_month, total = result1.result()
+        is_sum, os_sum, prod_sum = result2.result()
+        num_today = result3.result()
+        messages = result4.result()
+        num_signal, num_combo, diff_signal, diff_combo = result5.result()
+        num_failed_combo, num_failed_signal = result6.result()
+        total_log_count, today_log_count, today_log_in_count = result7.result()
+except Exception as ex:
+    trace_msg = traceback.format_exception(etype=type(ex), value=ex, tb=ex.__traceback__)
+    utils.db_insert_log("MULTI STAT ", str(trace_msg), "")   
 
-day = '2019-07-11'
-db = mysql.connect(**config.config_db)
-cursor = db.cursor()
-cursor.execute("SELECT COUNT(*) FROM log")
-a = cursor.fetchall()[0][0]
-cursor.execute("SELECT COUNT(*) FROM log WHERE logged_time LIKE \'%{}%\'".format(day))
-b = cursor.fetchall()[0][0]
-cursor.execute("SELECT COUNT(*) FROM login_log WHERE logged_time LIKE \'%{}%\'".format(day))
-c = cursor.fetchall()[0][0]
-print(a)
-print(b)
-print(c)
+num_days = int(day_ws_time.split("-")[-1])
+if num_days == 1:
+    average = 0
+elif num_days == 2:
+    average = yesterday
+else:
+    if yesterday == 0:
+        average = round(this_month / (num_days-2),2)
+    else:
+        average = round(this_month / (num_days-1), 2)
+
+print("\nTODAY STATUS")
+print("\nWorldQuant Time: " + str(websim_time).split(".")[0])
+
+print("\nPAYOUT       $"+str(yesterday))
+print("----------------------------------")
+print("Average      " + "$"+str(average))
+print("This month   " + "$"+str(this_month))
+print("Total        " + "$"+str(total))
+
+
+print("\nALPHAS       {}/5".format(num_today))
+print("----------------------------------")
+print("Combo        " + str(num_combo).ljust(9," ") + "+{}".format(diff_combo).ljust(5," ") + str(num_failed_combo))
+print("Signal       " + str(num_signal).ljust(9," ") + "+{}".format(diff_signal).ljust(5," ") + str(num_failed_signal))
+print("IS           " + str(is_sum))
+print("OS           " + str(os_sum-config.num_alphathon))
+
+
+if today_log_count > 500 or today_log_in_count > 500:
+    message = "WARNING"
+    print("\nSYSTEM       {}".format(message))
+    print("----------------------------------")
+    print("Today log    " + str(today_log_count))
+    print("Today login  " + str(today_log_in_count))
+    print("Total log    " + str(total_log_count))
+else:
+    message = "GOOD"
+    print("\nSYSTEM       {}".format(message))
+    print("----------------------------------")
+
+print("\nANNOUNCEMENTS")
+print("----------------------------------")
+for mess in messages:
+    print(str(mess["dateCreated"]).split("T")[0] + "   " + mess["title"])
+#print("\n")
+
+
+if yesterday != 0 and num_today == 0:
+    date_yesterday = str(datetime.now() - timedelta(hours = 24)).split(" ")[0]
+    update_payout_query = "UPDATE submitted SET payout = {} WHERE submitted_at = \'{}\' AND alpha_id != \'\'"
+    db = mysql.connect(**config.config_db)
+    cursor = db.cursor()
+    cursor.execute(update_payout_query.format(yesterday, date_yesterday))
+    db.commit()
+    db.close()
+

@@ -9,7 +9,6 @@ import mysql.connector as mysql
 from datetime import datetime, timedelta
 import pytz
 
-
 # Checking status including number of alphas, payout, and announcements.
 
 sess = requests.session()
@@ -79,5 +78,4 @@ if yesterday != 0 and num_today == 0:
     cursor.execute(update_payout_query.format(yesterday, date_yesterday))
     db.commit()
     db.close()
-
 
