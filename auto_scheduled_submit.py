@@ -189,7 +189,11 @@ websim_time = datetime.now(pytz.timezone('EST5EDT'))
 day_ws_time = str(websim_time).split(" ")[0]
 num_today = stuff.num_alpha_submitted(day_ws_time, sess)
 
-if num_today < 5:
+print("\nAUTO SCHEDULED SUBMIT ALPHAS\n")
+if num_today >= 5:
+    print("\nYou have submitted {}/5 alphas today. Just relax :)\n".format(num_today))
+else:
+    print("Number of alpha submitted today: {}/5\n".format(num_today))
     auto_submit("2", num_today, sess)
 
 
