@@ -362,7 +362,7 @@ def get_alpha_info(alpha_id, sess):
     tried_time = 1
     try:
         while tried_time < max_tried_time:
-            alpha_url_info = alpha_url.format(alpha_id)# + str(alpha_id)
+            alpha_url_info = alpha_url.format(alpha_id)  # + str(alpha_id)
             response = sess.get(alpha_url_info, data="", headers=headers)
             if ERRORS(sess, response.text, "get_alpha_info"):
                 time.sleep(1)
@@ -447,7 +447,7 @@ def change_name(alpha_id, sess, name="anonymous"):
 def set_theme(alpha_code, region, data):
     try:
         multiplier = 0
-        #if "ASI" in settings or "EUR" in settings:
+        # if "ASI" in settings or "EUR" in settings:
         # if region == "ASI" or region == "EUR":
         #     multiplier = multiplier + 2
         # if any(err in alpha_code for err in data):
@@ -459,6 +459,6 @@ def set_theme(alpha_code, region, data):
         return multiplier
     except Exception as ex:
         trace_msg = traceback.format_exception(etype=type(ex), value=ex, tb=ex.__traceback__)
-        db_insert_log("theme_check", str(trace_msg),"")
+        db_insert_log("theme_check", str(trace_msg), "")
 
 

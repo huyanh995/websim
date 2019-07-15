@@ -1,4 +1,4 @@
-# websim_api
+# Websim tool
 An automatic simulation and checking submission for websim.\
 Developed by **Huy Anh Nguyen**, collaboration with Le Dang Cuong with help from Ho Duc Nhan and Luong Anh Vu.
 

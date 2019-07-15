@@ -35,9 +35,15 @@ def submit_alpha(alpha_id, sess):
                     checks = res_info_submitted["is"]["checks"]
                     for check in checks:
                         if 'SELF_CORRELATION' in str(check):
-                            selfcorr = check["value"]
+                            if check["result"] == "PASS":
+                                selfcorr = check["value"]
+                            else:
+                                return False, -1, -1, tried_time
                         if 'PROD_CORRELATION' in str(check):
-                            prodcorr = check["value"]
+                            if check["result"] == "PASS":
+                                prodcorr = check["value"]
+                            else:
+                                return False, -1, -1, tried_time
                     return True, selfcorr, prodcorr, tried_time
             time.sleep(0.5)
             tried_time = tried_time + 1
@@ -106,74 +112,32 @@ def db_update_combo(alpha_id):
         db_exception.write(log_mess)
         db_exception.close()
 
-def auto_submit(mode, num_today, sess):
+def auto_submit(num_today, sess):
     try:
-        max_num_alpha = 5
         num_alpha = num_today
         select_query = 'SELECT alpha_id FROM combo WHERE self_corr > 0 AND prod_corr > 0 ORDER BY {} DESC LIMIT {}'
-        if mode == "1":
-            while num_alpha < max_num_alpha:
-                alpha_id = str(input("Alpha ID: "))
-                result, selfcorr, prodcorr, tried_time = submit_alpha(alpha_id, sess)
-                if result == True and tried_time < max_tried_time:
-                    num_alpha = num_alpha + 1
-                    db_move_combo(alpha_id, selfcorr, prodcorr, sess)
-                    utils.change_name(alpha_id, sess, name = 'submitted')
-                    print("Alpha {} submitted successfully. ({}/5)".format(alpha_id, num_alpha))
-                elif result == False and tried_time < max_tried_time:
-                    #db_delete_combo(alpha_id)
-                    db_update_combo(alpha_id)
-                    print("Can not submit alpha {}.".format(alpha_id))
-                elif result == False and tried_time == max_tried_time:
-                    print("Time-out")
-                else:
-                    print("There was an exception!!!")
-        elif mode == "2":
+        # Recheck 15 alphas >> Submit 1 >> Increase index >> Loop.
+        # If an alpha get stucks, cannot submit and show "Time-out" forever, the function will be stucked. But I'm too lazy for it, so well :v.
+        while num_alpha < 5:
+            stuff.re_check(sess,10)
             db = mysql.connect(**config.config_db)
             cursor = db.cursor()
-            cursor.execute(select_query.format(config.combo_criteria, 5))
-            records = cursor.fetchall()
+            cursor.execute(select_query.format(config.combo_criteria, 1)) # Choose one alpha to submit
+            alpha_id = cursor.fetchall()
             db.close()
-            for alpha_id in records:
-                if num_alpha == 5:
-                    break
-                result, selfcorr, prodcorr, tried_time = submit_alpha(alpha_id[0], sess)
-                if result == True and tried_time < max_tried_time:
-                    num_alpha = num_alpha + 1
-                    db_move_combo(alpha_id[0], selfcorr, prodcorr, sess)
-                    utils.change_name(alpha_id[0], sess, name = 'submitted')
-                    print("Alpha {} submitted successfully. ({}/5)".format(alpha_id[0], num_alpha))
-                elif result == False and tried_time < max_tried_time:
-                    db_update_combo(alpha_id[0])
-                    print("Can not submit alpha {}.".format(alpha_id[0]))
-                elif result == False and tried_time == max_tried_time:
-                    print("Time-out")
-                else:
-                    print("There was an exception!!!")
-        elif mode == "3":
-            print("WARNING: Pause the combo simulation!")
-            # Recheck 15 alphas >> Submit 1 >> Increase index >> Loop.
-            # If an alpha get stucks, cannot submit and show "Time-out" forever, the function will be stucked. But I'm too lazy for it, so well :v.
-            while num_alpha < 5:
-                stuff.re_check(sess,10)
-                db = mysql.connect(**config.config_db)
-                cursor = db.cursor()
-                cursor.execute(select_query.format(config.combo_criteria, 1)) # Choose one alpha to submit
-                alpha_id = cursor.fetchall()
-                db.close()
-                result, selfcorr, prodcorr, tried_time = submit_alpha(alpha_id[0][0], sess)
-                if result == True and tried_time < max_tried_time:
-                    num_alpha = num_alpha + 1
-                    db_move_combo(alpha_id[0][0], selfcorr, prodcorr, sess)
-                    utils.change_name(alpha_id[0][0], sess, name = 'submitted')
-                    print("Alpha {} submitted successfully. ({}/5)".format(alpha_id[0][0], num_alpha))
-                elif result == False and tried_time < max_tried_time:
-                    db_update_combo(alpha_id[0][0])
-                    print("Can not submit alpha {}.".format(alpha_id[0][0]))
-                elif result == False and tried_time == max_tried_time:
-                    print("Time-out")
-                else:
-                    print("There was an exception!!!")
+            result, selfcorr, prodcorr, tried_time = submit_alpha(alpha_id[0][0], sess)
+            if result == True and tried_time < max_tried_time:
+                num_alpha = num_alpha + 1
+                db_move_combo(alpha_id[0][0], selfcorr, prodcorr, sess)
+                utils.change_name(alpha_id[0][0], sess, name = 'submitted')
+                print("Alpha {} submitted successfully. ({}/5)".format(alpha_id[0][0], num_alpha))
+            elif result == False and tried_time < max_tried_time:
+                db_update_combo(alpha_id[0][0])
+                print("Can not submit alpha {}.".format(alpha_id[0][0]))
+            elif result == False and tried_time == max_tried_time:
+                print("Time-out")
+            else:
+                print("There was an exception!!!")
     except Exception as ex:
         trace_msg = traceback.format_exception(etype=type(ex), value=ex, tb=ex.__traceback__)
         utils.db_insert_log("auto_submit",str(trace_msg), "")
@@ -194,6 +158,6 @@ if num_today >= 5:
     print("\nYou have submitted {}/5 alphas today. Just relax :)\n".format(num_today))
 else:
     print("Number of alpha submitted today: {}/5\n".format(num_today))
-    auto_submit("3", num_today, sess)
+    auto_submit(num_today, sess)
 
 
