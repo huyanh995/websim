@@ -59,7 +59,7 @@ def simulate_alpha(sess, alpha_code, top, region, thread_num):
             else: 
                 job_id = job_response.headers["location"].split("/")[-1]
                 try:
-                    while tried_res_time < 50*max_tried_times:
+                    while tried_res_time < 30*max_tried_times:
                         sim_alpha_url = sim_url.format(job_id) 
                         alpha_response = sess.get(
                             sim_alpha_url, data="", headers=headers)
@@ -76,12 +76,12 @@ def simulate_alpha(sess, alpha_code, top, region, thread_num):
                                     return alpha_id
                                 else:
                                     return None
-                        time.sleep(2.0)
+                        time.sleep(5.0)
                         tried_res_time = tried_res_time + 1
                 except Exception as ex_alpha:
                     trace_msg_alpha = traceback.format_exception(etype=type(ex_alpha), value=ex_alpha, tb=ex_alpha.__traceback__)
                     db_insert_log("simulate_alpha",str(trace_msg_alpha), "Job_ID :"+job_response.text+"\nAlpha_ID :"+alpha_response.text)
-            time.sleep(1)
+            time.sleep(2)
             tried_sim_time = tried_sim_time + 1
         return None
     except Exception as ex:

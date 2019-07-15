@@ -263,7 +263,7 @@ def check_prodcorr(alpha_id, sess):
                     return 0.1 # For alphas which cannot find the prodcorr due to there is no correlated alpha in the alpha pool.
                 else:
                     return 0.1
-            time.sleep(2.0)
+            time.sleep(5.0)
             tried_times = tried_times + 1
         except Exception as ex:
             trace_msg = traceback.format_exception(etype=type(ex), value=ex, tb=ex.__traceback__)
@@ -294,7 +294,7 @@ def check_selfcorr(alpha_id, sess):
                 else:
                     self_corr = 0.1
                     return self_corr
-            time.sleep(2.0)
+            time.sleep(5.0)
             tried_times = tried_times + 1
         except Exception as ex:
             trace_msg = traceback.format_exception(etype=type(ex), value=ex, tb=ex.__traceback__)
@@ -340,7 +340,7 @@ def check_submission(alpha_id, sess):
                         else:
                             prod_corr = check['value']
                 return True, self_corr, prod_corr
-            time.sleep(2.5)
+            time.sleep(5.0)
             tried_times = tried_times + 1
         except Exception as ex:
             trace_msg = traceback.format_exception(etype=type(ex), value=ex, tb=ex.__traceback__)
