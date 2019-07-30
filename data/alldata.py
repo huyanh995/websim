@@ -52,7 +52,7 @@ data['ASI'] = Price_Volume + Fundamental_ASI + Stock_Reports_Plus + Analyst_Revi
       Revenue_Estimate_Model + Growth_Valuation_Model + Smart_Ratios + Analyst_Revisions + EBITDA_Estimate_Model \
       + Creditworthiness_Model + Fundamental_Scores + Ravenpack
 
-data['Theme'] = Ravenpack + Ravenpack_USA
+data['Theme'] = Performance_Metrics_Data + Volatility_and_Risk_Factor_Data + Systematic_Risk_Metrics
 
 
 
