@@ -30,21 +30,20 @@ def get_submitted_alpha(sess):
        
 ## Theme check
 update_query = 'UPDATE combo SET theme = {} WHERE alpha_id = \'{}\''
-select_query = 'SELECT alpha_id, alpha_code, settings FROM combo WHERE self_corr > 0 and theme = 0'
+select_query = 'SELECT alpha_id, alpha_code, settings FROM combo WHERE self_corr > 0' # and theme = 0'
 select_sub_query = 'SELECT alpha_id, alpha_code, settings FROM submitted WHERE self_corr > 0'
 update_sub_query = 'UPDATE submitted SET theme = {} WHERE alpha_id = \'{}\''
 
 def theme_check(alpha_id, alpha_code, settings, data, query):
     # Checking if any combo is satisfied current multi-theme
     try:
-        multiplier = 0
-        if "ASI" in settings or "EUR" in settings:
-            multiplier = multiplier + 2
-        if any(err in alpha_code for err in data):
-            if multiplier > 0:
-                multiplier = multiplier + 1
-            else:
-                multiplier = multiplier + 2
+        # if 'ASI' in settings:
+        #     region = 'ASI'
+        # elif 'EUR' in settings:
+        #     region = 'EUR'
+        # else:
+        #     region = 'USA'
+        multiplier = utils.set_theme(alpha_code, "ASI", data)
         if multiplier > 0:
             print(str(alpha_id) + ": THEME x{}".format(multiplier))
         else:
