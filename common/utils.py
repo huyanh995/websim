@@ -450,8 +450,9 @@ def set_theme(alpha_code, region, data):
         # if "ASI" in settings or "EUR" in settings:
         # if region == "ASI" or region == "EUR":
         #     multiplier = multiplier + 2
-        if len(alpha_code) <= 400:
-            print("LENGTH: {}".format(len(alpha_code)))
+        length = len(alpha_code)
+        print("LENGTH: {}".format(length))
+        if length <= 400:
             multiplier = 4
         if any(err in alpha_code for err in data):
             if multiplier > 0:
