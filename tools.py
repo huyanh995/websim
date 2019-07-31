@@ -68,6 +68,7 @@ while True:
     print("[3]: Test MySQL connection")
     print("[4]: Import payout data to submitted table")
     print("[5]: Record number of generated alpha")
+    print("[6]: Update signals list for combo (Developing)")
     print("\n[x]: Exit")
     mode = str(input("\nChoose mode: "))
     modes = ["1","2","3","4","5","x","X"]

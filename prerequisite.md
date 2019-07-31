@@ -16,7 +16,13 @@ sudo apt install python3-pip
 
 ```console
 sudo apt install mysql-server
+sudo mysql_secure_installation
 pip3 install mysql-connector-python
+```
+
+## Git
+```console
+sudo apt install git
 ```
 For connecting MySQL remotely from your client, I strongly recommend to follow this tutorial (https://pieter-duplessis.co.za/blog/connecting-to-gcp-compute-engine-with-mysql-on-a-remote-ost/). Many thanks to Pieter du Plessis.
 If you got the error code 61 when connecting MySQL remotely, trying: sudo service mysql restart
