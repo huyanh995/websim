@@ -30,7 +30,7 @@ list_tops = [["TOP200", "TOP500", "TOP1000", "TOP2000", "TOP3000"], [
 # SIMULATE and SUBMIT Function
 group = ['market', 'sector', 'industry', 'subindustry']
 
-def simulate_alpha(sess, alpha_code, top, region, thread_num):  
+def simulate_alpha(sess, alpha_code, top, region, thread_num, neutral = "NONE"):  
     # Simulate alpha (mostly use for combos). Input alpha, universe and region.
     # For combo simulation, alphas have fitness > 1.25, sharpe > 2 and corr < determined values are called signals.
     #max_tried_times = 10
@@ -42,7 +42,7 @@ def simulate_alpha(sess, alpha_code, top, region, thread_num):
     try:
         while tried_sim_time < max_tried_times:
             payload = {"type": "SIMULATE", "settings": {"nanHandling": "OFF", "instrumentType": "EQUITY", "delay": 1, "universe": top, "truncation": 0.08, "unitHandling": "VERIFY",
-                                                        "pasteurization": "ON", "region": region, "language": "FASTEXPR", "decay": 0, "neutralization": "NONE", "visualization": False}, "code": alpha_code}
+                                                        "pasteurization": "ON", "region": region, "language": "FASTEXPR", "decay": 0, "neutralization": neutral, "visualization": False}, "code": alpha_code}
             # POST request to server to get Job ID (It's different ID, to get Alpha ID in futher)
             print("Thread {}: SIMULATING: ".format(thread_num) + str(alpha_code))
             job_response = sess.post(
