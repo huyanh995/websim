@@ -49,7 +49,7 @@ print("----------------------------------")
 print("Combo        " + str(num_combo).ljust(9," ") + "+{}".format(diff_combo).ljust(5," ") + str(num_failed_combo))
 print("Signal       " + str(num_signal).ljust(9," ") + "+{}".format(diff_signal).ljust(5," ") + str(num_failed_signal))
 print("IS           " + str(is_sum))
-print("OS           " + str(os_sum-config.num_alphathon))
+print("OS           " + str(os_sum-config.num_alphathon) + " | {}".format(prod_sum))
 
 
 if today_log_count > 500 or today_log_in_count > 500:
