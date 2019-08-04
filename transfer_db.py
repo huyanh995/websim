@@ -26,10 +26,10 @@ results = cursor.fetchall()
 count = 1
 for result in results:
     alpha_code = result[0].replace(" ","")
+    print("Number: {}/{}".format(count, total))
     alpha_id = simulator.simulate_alpha(sess, alpha_code, "TOP3000", "USA", 0)
     alpha_info = utils.get_alpha_info(alpha_id, sess)
     if alpha_info["sharpe"] >= config.min_signal[0] and alpha_info["fitness"] >= config.min_signal[1]:
-        print("Number: {}/{}".format(count, total))
         alpha_info["self_corr"] = utils.check_selfcorr(alpha_id, sess)
         alpha_info["prod_corr"] = utils.check_prodcorr(alpha_id, sess)
         values = (
