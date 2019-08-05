@@ -164,6 +164,7 @@ def db_insert_combo(alpha_info):
         db.close()
     except Exception as ex:
         trace_msg = traceback.format_exception(etype=type(ex), value=ex, tb=ex.__traceback__)
+        print(trace_msg)
         db_exception = open("db_exception.txt", "a+")
         log_mess = str(datetime.now())+": COMBO  :  "+str(trace_msg)+"\n"
         db_exception.write(log_mess)
