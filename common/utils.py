@@ -386,10 +386,13 @@ def get_alpha_info(alpha_id, sess):
                 alpha_info["fitness"] = alpha_res_json["is"]["fitness"]
                 alpha_info["grade"] = alpha_res_json["grade"]
                 for test in alpha_res_json["is"]["checks"]:
-                    if len(alpha_res_json["is"]["details"]["records"]) < 12:
-                        alpha_info["weight_test"] = "FAIL"
-                        break
-                    elif test["name"] == "CONCENTRATED_WEIGHT":
+                    # if len(alpha_res_json["is"]["details"]["records"]) < 12:
+                    #     alpha_info["weight_test"] = "FAIL"
+                    #     break
+                    # elif test["name"] == "CONCENTRATED_WEIGHT":
+                    #     alpha_info["weight_test"] = test["result"]
+                    #     break
+                    if test["name"] == "CONCENTRATED_WEIGHT":
                         alpha_info["weight_test"] = test["result"]
                         break
                 alpha_info["self_corr"] = 0 # It means you need to add value when using.
