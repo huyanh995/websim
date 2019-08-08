@@ -9,7 +9,6 @@ import random
 import traceback
 
 from datetime import datetime
-
 # Generate combos from signals stored in Database.
 # Read count value in Vu's codes.
 
@@ -61,9 +60,10 @@ def generate_combo(signals, num_signal, top, region):
             combo_code = combo_code + "sn" + str(index) + ", "
             list_alpha_ids.append(signal[0])
             index = index + 1
-        #combo_code = combo_signal + combo_code + 'filter = true), market); alpha'
-        rndCombo = random.choice(config.combo_template).format(combo_signal, combo_code)
-        combo["alpha_code"]=rndCombo
+        combo_code = combo_signal + 'alpha = group_neutralize(add(' + combo_code + "group_neutralize(group_rank(( add(ts_decay_exp_window(star_hold_sector_rank,239, factor = 1,nan = true), slog1p(qs_alpha_1d), filter = true) / round(close)), subindustry), market)," + 'filter = true), market); alpha'
+        #rndCombo = random.choice(config.combo_template).format(combo_signal, combo_code)
+        #combo["alpha_code"]=rndCombo
+        combo["alpha_code"]=combo_code
         return combo, list_alpha_ids
     except Exception as ex:
         trace_msg = traceback.format_exception(etype=type(ex), value=ex, tb=ex.__traceback__)

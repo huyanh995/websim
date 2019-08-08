@@ -5,7 +5,7 @@ import threading
 import _thread
 import logging
 import traceback
-
+import random
 import mysql.connector as mysql
 from datetime import datetime
 
@@ -60,8 +60,6 @@ def combo_simulate(thread_num):
         try:
             list_signal = combo_generator.get_set_signals(top, region)
             combo_alpha, list_alpha_ids = combo_generator.generate_combo(list_signal, num_signals, top, region)
-            combo_alpha["alpha_code"] = combo_alpha["alpha_code"].replace(" ","").replace("sn0","a").replace("sn1","b").replace("sn2","c").replace("alpha","d")
-            combo_alpha["alpha_code"] = combo_alpha["alpha_code"].replace("d=group_neutralize(","d=").replace(",market);d",";d")
             alpha_id = simulator.simulate_alpha(sess, combo_alpha["alpha_code"], top, region, thread_num)
             utils.change_name(alpha_id, sess, name="potential")
             if alpha_id != None:
