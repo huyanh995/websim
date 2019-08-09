@@ -46,6 +46,20 @@ def get_set_signals(top, region):
         trace_msg = traceback.format_exception(etype=type(ex), value=ex, tb=ex.__traceback__)
         utils.db_insert_log("get_set_signals", str(trace_msg), str(query))
 
+def get_theme_signals(top, region):
+    try:
+        db = mysql.connect(**config.config_db)
+        cursor = db.cursor()
+        query = "SELECT alpha_code FROM signals WHERE count_used <= {} AND theme > 0 AND universe = \'{}\'".format(config.max_signal_count, top)
+        cursor.execute(query)
+        records = cursor.fetchall()
+        rndTheme = random.choice(records)
+        db.close()
+        return rndTheme
+    except Exception as ex:
+        trace_msg = traceback.format_exception(etype=type(ex), value=ex, tb=ex.__traceback__)
+        utils.db_insert_log("get_set_signals", str(trace_msg), str(query))
+
 def generate_combo(signals, num_signal, top, region):
     try:
         rnd_signals = random.sample(signals.items(), num_signal) # Get a list contains alpha_id and alpha_code of (num_signal) signal.
@@ -60,7 +74,8 @@ def generate_combo(signals, num_signal, top, region):
             combo_code = combo_code + "sn" + str(index) + ", "
             list_alpha_ids.append(signal[0])
             index = index + 1
-        combo_code = combo_signal + 'alpha = group_neutralize(add(' + combo_code + "group_neutralize(group_rank(( add(ts_decay_exp_window(star_hold_sector_rank,239, factor = 1,nan = true), slog1p(qs_alpha_1d), filter = true) / round(close)), subindustry), market)," + 'filter = true), market); alpha'
+        rndTheme = get_theme_signals("TOP3000","USA")
+        combo_code = combo_signal + 'alpha = group_neutralize(add(' + combo_code + rndTheme + ", filter = true) / round(close)), subindustry), market)," + 'filter = true), market); alpha'
         #rndCombo = random.choice(config.combo_template).format(combo_signal, combo_code)
         #combo["alpha_code"]=rndCombo
         combo["alpha_code"]=combo_code
