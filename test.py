@@ -21,7 +21,8 @@ cursor.execute(select_query)
 results = cursor.fetchall()
 for result in results:
     alpha_id = simulator.simulate_alpha(sess, result[0], result[1], result[2], 1)
-    print(utils.get_alpha_info(alpha_id, sess))
+    if alpha_id != None:
+        print(utils.get_alpha_info(alpha_id, sess))
 
 
     
