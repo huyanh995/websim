@@ -229,6 +229,22 @@ def db_insert_submitted(alpha_info):
 #     no2 INT,
 #     no3 INT
 # );
+
+def db_insert_error_alpha(datetime, alpha_code, settings, message):
+    try:
+        insert_query = "INSERT INTO alpha_error (logged_time, alpha_code, settings, message) VALUES (%s, %s, %s, %s)"
+        db = mysql.connect(**config.config_db)
+        cursor = db.cursor()
+        values = (datetime, alpha_code, settings, message)
+        cursor.execute(insert_query, values)
+        db.commit()
+        db.close()
+    except Exception as ex:
+        trace_msg = traceback.format_exception(etype=type(ex), value=ex, tb=ex.__traceback__)
+        db_exception = open("db_exception.txt", "a+")
+        log_mess = str(datetime.now())+":SUBMITTED:  "+str(trace_msg)+"\n"
+        db_exception.write(log_mess)
+        db_exception.close()
 ################## LOGIN Function
 
 def login(sess):

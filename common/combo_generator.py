@@ -27,9 +27,6 @@ def update_count_used(alpha_id):
         trace_msg = traceback.format_exception(etype=type(ex), value=ex, tb=ex.__traceback__)
         utils.db_insert_log("update_count_used", str(trace_msg), str(query))
 
-# def get_signal_list(region, top):
-#     return
-
 def get_set_signals(top, region):
     # Return a dictionary contains alpha_id and alpha_code of signals.
     # For prepare combination step.
@@ -46,20 +43,6 @@ def get_set_signals(top, region):
         trace_msg = traceback.format_exception(etype=type(ex), value=ex, tb=ex.__traceback__)
         utils.db_insert_log("get_set_signals", str(trace_msg), str(query))
 
-def get_theme_signals(top, region):
-    try:
-        db = mysql.connect(**config.config_db)
-        cursor = db.cursor()
-        query = "SELECT alpha_code FROM signals WHERE count_used <= {} AND theme > 0 AND universe = \'{}\'".format(config.max_signal_count, top)
-        cursor.execute(query)
-        records = cursor.fetchall()
-        rndTheme = random.choice(records)
-        db.close()
-        return rndTheme
-    except Exception as ex:
-        trace_msg = traceback.format_exception(etype=type(ex), value=ex, tb=ex.__traceback__)
-        utils.db_insert_log("get_set_signals", str(trace_msg), str(query))
-
 def generate_combo(signals, num_signal, top, region):
     try:
         rnd_signals = random.sample(signals.items(), num_signal) # Get a list contains alpha_id and alpha_code of (num_signal) signal.
@@ -68,17 +51,13 @@ def generate_combo(signals, num_signal, top, region):
         index = 0
         list_alpha_ids = [] # Get list of signal's alpha_id to increase count if combo is qualified.
         combo_code = ""
-        #combo_code = 'alpha = group_neutralize(add('
         for signal in rnd_signals:
             combo_signal = combo_signal + "sn" + str(index) + "=" + signal[1] + "; "
             combo_code = combo_code + "sn" + str(index) + ", "
             list_alpha_ids.append(signal[0])
             index = index + 1
-        rndTheme = get_theme_signals("TOP3000","USA")
-        combo_code = combo_signal + 'alpha = group_neutralize(add(' + combo_code + rndTheme + ", filter = true) / round(close)), subindustry), market)," + 'filter = true), market); alpha'
-        #rndCombo = random.choice(config.combo_template).format(combo_signal, combo_code)
-        #combo["alpha_code"]=rndCombo
-        combo["alpha_code"]=combo_code
+        rndCombo = random.choice(config.combo_template).format(combo_signal, combo_code)
+        combo["alpha_code"]=rndCombo
         return combo, list_alpha_ids
     except Exception as ex:
         trace_msg = traceback.format_exception(etype=type(ex), value=ex, tb=ex.__traceback__)

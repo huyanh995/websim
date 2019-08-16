@@ -81,5 +81,13 @@ CREATE TABLE login_log (
     response VARCHAR(5000)
 );
 
+CREATE TABLE alpha_error (
+    id INT PRIMARY KEY NOT NULL AUTO_INCREMENT,
+    logged_time DATETIME,
+    alpha_code VARCHAR(8000),
+    settings VARCHAR(1000),
+    message VARCHAR(1000)
+);
+
 ALTER TABLE submitted MODIFY COLUMN alpha_code VARCHAR(10000);
 ALTER TABLE combo MODIFY COLUMN alpha_code VARCHAR(10000);

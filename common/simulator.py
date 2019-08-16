@@ -70,7 +70,13 @@ def simulate_alpha(sess, alpha_code, top, region, thread_num, neutral = "NONE"):
                         else:
                             if job_id in alpha_response.text: # Condition to know the simulation process is done. Maybe you will find a better solution.
                                 alpha_res_json = json.loads(alpha_response.content)
-                                if alpha_res_json["status"] == 'COMPLETE' or alpha_res_json["status"] == "WARNING":
+                                if alpha_res_json["status"] == 'ERROR':
+                                    print("Error Alpha")
+                                    message = alpha_res_json["message"]
+                                    logged_time = datetime.now()
+                                    alpha_settings = alpha_res_json["settings"]
+                                    db_insert_error_alpha(logged_time, alpha_code, alpha_settings, message)
+                                elif alpha_res_json["status"] == 'COMPLETE' or alpha_res_json["status"] == "WARNING":
                                     alpha_id = json.loads(alpha_response.content)["alpha"]
                                     #print("Thread {}: DONE: ".format(thread_num)+str(alpha_id))
                                     return alpha_id
