@@ -75,7 +75,7 @@ def simulate_alpha(sess, alpha_code, top, region, thread_num, neutral = "NONE"):
                                     message = alpha_res_json["message"]
                                     logged_time = datetime.now()
                                     alpha_settings = alpha_res_json["settings"]
-                                    db_insert_error_alpha(logged_time, alpha_code, alpha_settings, message)
+                                    db_insert_error_alpha(logged_time, str(alpha_code), str(alpha_settings), str(message))
                                     return None
                                 elif alpha_res_json["status"] == 'COMPLETE' or alpha_res_json["status"] == "WARNING":
                                     alpha_id = json.loads(alpha_response.content)["alpha"]
