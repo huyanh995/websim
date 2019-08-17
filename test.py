@@ -113,3 +113,4 @@ def update_actual_use_signals():
             else:
                 cursor.fetchall()
 
+update_actual_use_signals()
