@@ -91,3 +91,4 @@ CREATE TABLE alpha_error (
 
 ALTER TABLE submitted MODIFY COLUMN alpha_code VARCHAR(10000);
 ALTER TABLE combo MODIFY COLUMN alpha_code VARCHAR(10000);
+ALTER TABLE signals ADD COLUMN actual_use INT DEFAULT 0 AFTER count_used, ADD COLUMN updated_at DATE AFTER created_at;

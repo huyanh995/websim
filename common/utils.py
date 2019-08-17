@@ -102,11 +102,11 @@ def db_insert_signals(alpha_info):
     try:
         db = mysql.connect(**config.config_db)
         cursor = db.cursor()
-        query = "INSERT INTO signals (alpha_id, created_at, alpha_code, region, universe, settings, sharpe, fitness, self_corr, prod_corr, longCount, shortCount, pnl, turnover, theme, last_used, count_used) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
+        query = "INSERT INTO signals (alpha_id, created_at, alpha_code, region, universe, settings, sharpe, fitness, self_corr, prod_corr, longCount, shortCount, pnl, turnover, theme, last_used, count_used, actual_use) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
         values = (
             str(alpha_info["alpha_id"]),
             str(alpha_info["create_day"]),
-            str(alpha_info["alpha_code"]),
+            str(alpha_info["alpha_code"]).replace(" ",""),
             str(alpha_info["region"]),
             str(alpha_info["universe"]),
             str(alpha_info["settings"]),
@@ -120,6 +120,7 @@ def db_insert_signals(alpha_info):
             float(alpha_info["turnover"])*100,
             int(alpha_info["theme"]),
             None,
+            0,
             0
             )
         cursor.execute(query, values)
