@@ -106,7 +106,7 @@ def update_actual_use_signals():
         for signal in signals:
             signal_code = signal.split("=")[1]
             print(signal_code)
-            cursor.execute(signal_code)
+            cursor.execute(select_signals_query.format(signal_code))
             if cursor.rowcount != 0:
                 alpha_id = cursor.fetchall()[0][0]
                 print(alpha_id)
