@@ -54,7 +54,6 @@ def db_update_signals(old_alpha_id, alpha_info):
     db.commit()
     db.close()
 
-
 def re_simulate_signals():
     select_query = "SELECT alpha_id, alpha_code, universe, region FROM signals"
     db = mysql.connect(**config.config_db)
@@ -74,9 +73,9 @@ def re_simulate_signals():
 
 
 
-def remove_space_signals():
-    select_query = "SELECT alpha_id, alpha_code FROM submitted"
-    update_query = "UPDATE submitted SET alpha_code = \'{}\' WHERE alpha_id = \'{}\'"
+def remove_space_alpha(table):
+    select_query = "SELECT alpha_id, alpha_code FROM {}".format(table)
+    update_query = "UPDATE" + str(table) + "SET alpha_code = \'{}\' WHERE alpha_id = \'{}\'"
     db = mysql.connect(**config.config_db)
     cursor = db.cursor()
     cursor.execute(select_query)
@@ -89,27 +88,47 @@ def remove_space_signals():
         db.commit()
     db.close()
 
+import ast
 def update_actual_use_signals():
-    select_query = "SELECT alpha_id, alpha_code FROM submitted"
-    update_signal_query = "UPDATE signals SET actual_use = actual_use + 1 WHERE alpha_code = \'{}\' and alpha_id != \'\'"
-    select_signals_query = "SELECT alpha_id FROM signals WHERE alpha_code = \'{}\'"
+    select_query = "SELECT alpha_id, alpha_code, settings FROM submitted"
+    update_signal_query = "UPDATE signals SET actual_use = actual_use + 1 WHERE alpha_id != \'\' and alpha_code = \'{}\' and region = \'{}\' and universe = \'{}\'"
+    #select_signals_query = "SELECT alpha_id FROM signals WHERE alpha_code = \'{}\'"
     db = mysql.connect(**config.config_db)
     cursor = db.cursor()
     cursor.execute(select_query)
     records = cursor.fetchall()
     for alpha in records:
-        alpha_id = alpha[0]
         alpha_code = alpha[1]
+        settings = ast.literal_eval(alpha[2])
+        region = settings["region"]
+        universe = settings["universe"]
         signals = alpha_code.split(";")
         signals.pop(-1)
         signals.pop(-1)
         for signal in signals:
-            signal_code = signal.split("=")[1]
-            cursor.execute(select_signals_query.format(signal_code))
-            if cursor.rowcount != 0:
-                alpha_id = cursor.fetchall()[0][0]
-                print(alpha_id)
-            else:
-                cursor.fetchall()
+            signal_code = signal[4:]
+            if signal_code[0] == "=":
+                signal_code = signal_code[1:]
+            print(signal_code)
+            cursor.execute(update_signal_query.format(signal_code, region, universe))
+            db.commit()
+            # query = select_signals_query.format(signal_code)
+            # print(query)
+            # cursor.execute(query)
+            # result = cursor.fetchall()
+            # if len(result) != 0:
+            #     print(result[0][0])
+    db.close()
 
-update_actual_use_signals()
+db = mysql.connect(**config.config_db)
+cursor = db.cursor()
+delete_query = "DELETE FROM signals WHERE alpha_code = \'{}\' and alpha_id != \'\'";
+select_query = "SELECT alpha_code FROM alpha_error WHERE message = \'Grouping data used outside of group operator.\'"
+cursor.execute(select_query)
+records = cursor.fetchall()
+for record in records:
+    alpha_code = record[0].replace(" ","")
+    cursor.execute(delete_query.format(alpha_code))
+    db.commit()
+db.close()
+

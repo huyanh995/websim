@@ -7,6 +7,7 @@ from data import alldata
 import traceback
 import time
 import math
+import ast
 
 ## Transfer
 def get_submitted_alpha(sess):
@@ -59,6 +60,61 @@ def theme_check(alpha_id, alpha_code, settings, data, query):
         trace_msg = traceback.format_exception(etype=type(ex), value=ex, tb=ex.__traceback__)
         utils.db_insert_log("theme_check", str(trace_msg),"")
 
+def remove_space_alpha(table):
+    # Remove space in signals, combo, and submitted table
+    try:
+        select_query = "SELECT alpha_id, alpha_code FROM {}".format(table)
+        update_query = "UPDATE" + str(table) + "SET alpha_code = \'{}\' WHERE alpha_id = \'{}\'"
+        db = mysql.connect(**config.config_db)
+        cursor = db.cursor()
+        cursor.execute(select_query)
+        records = cursor.fetchall()
+        for record in records:
+            alpha_id = record[0]
+            alpha_code = record[1].replace(" ","")
+            print("ALPHA_CODE: {} | {}".format(alpha_id, alpha_code))
+            cursor.execute(update_query.format(alpha_code, alpha_id))
+            db.commit()
+        db.close()
+    except Exception as ex:
+        trace_msg = traceback.format_exception(etype=type(ex), value=ex, tb=ex.__traceback__)
+        utils.db_insert_log("remove_space", str(trace_msg),"")
+
+def update_actual_use_signals():
+    # Update actual use from existed submitted alpha
+    try:
+        select_query = "SELECT alpha_id, alpha_code, settings FROM submitted"
+        update_signal_query = "UPDATE signals SET actual_use = actual_use + 1 WHERE alpha_id != \'\' and alpha_code = \'{}\' and region = \'{}\' and universe = \'{}\'"
+        #select_signals_query = "SELECT alpha_id FROM signals WHERE alpha_code = \'{}\'"
+        db = mysql.connect(**config.config_db)
+        cursor = db.cursor()
+        cursor.execute(select_query)
+        records = cursor.fetchall()
+        for alpha in records:
+            alpha_code = alpha[1]
+            settings = ast.literal_eval(alpha[2])
+            region = settings["region"]
+            universe = settings["universe"]
+            signals = alpha_code.split(";")
+            signals.pop(-1)
+            signals.pop(-1)
+            for signal in signals:
+                signal_code = signal[4:]
+                if signal_code[0] == "=":
+                    signal_code = signal_code[1:]
+                print(signal_code)
+                cursor.execute(update_signal_query.format(signal_code, region, universe))
+                db.commit()
+                # query = select_signals_query.format(signal_code)
+                # print(query)
+                # cursor.execute(query)
+                # result = cursor.fetchall()
+                # if len(result) != 0:
+                #     print(result[0][0])
+        db.close()
+    except Exception as ex:
+        trace_msg = traceback.format_exception(etype=type(ex), value=ex, tb=ex.__traceback__)
+        utils.db_insert_log("update_actual_use", str(trace_msg),"")
 ### EXECUTE ###
 print("\nTOOLS")
 while True:
@@ -67,10 +123,11 @@ while True:
     print("[3]: Test MySQL connection")
     print("[4]: Import payout data to submitted table")
     print("[5]: Record number of generated alpha")
-    print("[6]: Update signals list for combo (Developing)")
+    print("[6]: Remove space in alpha")
+    print("[7]: Update actual use for signals")
     print("\n[x]: Exit")
     mode = str(input("\nChoose mode: "))
-    modes = ["1","2","3","4","5","x","X"]
+    modes = ["1","2","3","4","5","6","7","x","X"]
     assert(mode in modes)
     print("----------------------------------")    
     sess = requests.session()
@@ -135,6 +192,19 @@ while True:
                 print("RECORDED")
             start = start + 1
             time.sleep(5 * 60)
+    elif mode == "6":
+        print("[1]: Signals")
+        print("[1]: Combo")
+        print("[1]: Submitted alpha")
+        table = str(input("\nChoose mode: "))
+        if table == "1":
+            remove_space_alpha("signals")
+        elif table == "2":
+            remove_space_alpha("combo")
+        elif table == "3":
+            remove_space_alpha("submitted")
+    elif mode == "7":
+        update_actual_use_signals()
     else:
         break
 
