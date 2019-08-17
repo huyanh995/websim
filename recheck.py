@@ -24,7 +24,7 @@ def db_update_signals(old_alpha_id, alpha_info):
         float(alpha_info["turnover"])*100,
         int(alpha_info["theme"])
     )
-    update_query = "UPDATE signals SET alpha_id = \'{}\', updated_at = {}, alpha_code = \'{}\', sharpe = {}, fitness = {}, longCount = {}, shortCount = {}, pnl = {}, turnover = {}, theme = {} WHERE alpha_id = \'{}\'".format(*values, old_alpha_id)
+    update_query = "UPDATE signals SET alpha_id = \'{}\', updated_at = \'{}\', alpha_code = \'{}\', sharpe = {}, fitness = {}, longCount = {}, shortCount = {}, pnl = {}, turnover = {}, theme = {} WHERE alpha_id = \'{}\'".format(*values, old_alpha_id)
     db = mysql.connect(**config.config_db)
     cursor = db.cursor()
     cursor.execute(update_query)

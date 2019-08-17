@@ -6,7 +6,7 @@ import traceback
 import random
 from common import config, utils, stuff
 import mysql.connector as mysql
-
+import ast
 from datetime import datetime, timedelta
 import pytz
 
@@ -35,15 +35,9 @@ def submit_alpha(alpha_id, sess):
                     checks = res_info_submitted["is"]["checks"]
                     for check in checks:
                         if 'SELF_CORRELATION' in str(check):
-                            if check["result"] == "PASS":
-                                selfcorr = check["value"]
-                            else:
-                                return False, -1, -1, tried_time
+                            selfcorr = check["value"]
                         if 'PROD_CORRELATION' in str(check):
-                            if check["result"] == "PASS":
-                                prodcorr = check["value"]
-                            else:
-                                return False, -1, -1, tried_time
+                            prodcorr = check["value"]
                     return True, selfcorr, prodcorr, tried_time
             time.sleep(0.5)
             tried_time = tried_time + 1
@@ -52,6 +46,30 @@ def submit_alpha(alpha_id, sess):
         trace_msg = traceback.format_exception(etype=type(ex), value=ex, tb=ex.__traceback__)
         utils.db_insert_log("submit",str(trace_msg), response.text)
         return False, -2, -2, tried_time
+
+def update_actual_use_signals(alpha_id, alpha_code, settings):
+    # Update actual use from existed submitted alpha
+    try:
+        update_signal_query = "UPDATE signals SET actual_use = actual_use + 1 WHERE alpha_id != \'\' and alpha_code = \'{}\' and region = \'{}\' and universe = \'{}\'"
+        db = mysql.connect(**config.config_db)
+        cursor = db.cursor()
+        alpha_settings = ast.literal_eval(settings)
+        region = alpha_settings["region"]
+        universe = alpha_settings["universe"]
+        signals = alpha_code.split(";")
+        signals.pop(-1)
+        signals.pop(-1)
+        for signal in signals:
+            signal_code = signal[4:]
+            if signal_code[0] == "=":
+                signal_code = signal_code[1:]
+            print(signal_code)
+            cursor.execute(update_signal_query.format(signal_code, region, universe))
+            db.commit()
+        db.close()
+    except Exception as ex:
+        trace_msg = traceback.format_exception(etype=type(ex), value=ex, tb=ex.__traceback__)
+        utils.db_insert_log("update_actual_use", str(trace_msg),"")
 
 def db_move_combo(alpha_id, selfcorr, prodcorr, sess):
     # After submitting an alpha sucessfully, this function will copy alpha_info from combo table to submitted table with dateSubmitted
@@ -112,37 +130,83 @@ def db_update_combo(alpha_id):
         db_exception.write(log_mess)
         db_exception.close()
 
-def auto_submit(num_today, sess):
+def auto_submit(mode, num_today, sess):
     try:
+        max_num_alpha = 5
         num_alpha = num_today
-        select_query = 'SELECT alpha_id FROM combo WHERE self_corr > 0 AND prod_corr > 0 ORDER BY {} DESC LIMIT {}'
-        # Recheck 15 alphas >> Submit 1 >> Increase index >> Loop.
-        # If an alpha get stucks, cannot submit and show "Time-out" forever, the function will be stucked. But I'm too lazy for it, so well :v.
-        while num_alpha < 5:
-            stuff.re_check(sess,10)
+        select_query = 'SELECT alpha_id, alpha_code, settings FROM combo WHERE self_corr > 0 AND prod_corr > 0 ORDER BY {} DESC LIMIT {}'
+        if mode == "1":
+            while num_alpha < max_num_alpha:
+                alpha_id = str(input("Alpha ID: "))
+                result, selfcorr, prodcorr, tried_time = submit_alpha(alpha_id, sess)
+                if result == True and tried_time < max_tried_time:
+                    num_alpha = num_alpha + 1
+                    db_move_combo(alpha_id, selfcorr, prodcorr, sess)
+                    utils.change_name(alpha_id, sess, name = 'submitted')
+                    alpha_info = utils.get_alpha_info(alpha_id,sess)
+                    alpha_code = alpha_info["alpha_code"]
+                    alpha_settings = alpha_info["settings"]
+                    update_actual_use_signals(alpha_id, alpha_code, alpha_settings)
+                    print("Alpha {} submitted successfully. ({}/5)".format(alpha_id, num_alpha))
+                elif result == False and tried_time < max_tried_time:
+                    #db_delete_combo(alpha_id)
+                    db_update_combo(alpha_id)
+                    print("Can not submit alpha {}.".format(alpha_id))
+                elif result == False and tried_time == max_tried_time:
+                    print("Time-out")
+                else:
+                    print("There was an exception!!!")
+        elif mode == "2":
             db = mysql.connect(**config.config_db)
             cursor = db.cursor()
-            cursor.execute(select_query.format(config.combo_criteria, 1)) # Choose one alpha to submit
-            alpha_id = cursor.fetchall()
+            cursor.execute(select_query.format(config.combo_criteria, 50))
+            records = cursor.fetchall()
             db.close()
-            result, selfcorr, prodcorr, tried_time = submit_alpha(alpha_id[0][0], sess)
-            if result == True and tried_time < max_tried_time:
-                num_alpha = num_alpha + 1
-                db_move_combo(alpha_id[0][0], selfcorr, prodcorr, sess)
-                utils.change_name(alpha_id[0][0], sess, name = 'submitted')
-                print("Alpha {} submitted successfully. ({}/5)".format(alpha_id[0][0], num_alpha))
-            elif result == False and tried_time < max_tried_time:
-                db_update_combo(alpha_id[0][0])
-                print("Can not submit alpha {}.".format(alpha_id[0][0]))
-            elif result == False and tried_time == max_tried_time:
-                print("Time-out")
-            else:
-                print("There was an exception!!!")
+            for alpha_id in records:
+                if num_alpha == 5:
+                    break
+                result, selfcorr, prodcorr, tried_time = submit_alpha(alpha_id[0], sess)
+                if result == True and tried_time < max_tried_time:
+                    num_alpha = num_alpha + 1
+                    db_move_combo(alpha_id[0], selfcorr, prodcorr, sess)
+                    utils.change_name(alpha_id[0], sess, name = 'submitted')
+                    update_actual_use_signals(alpha_id[0],alpha_id[1],alpha_id[2])
+                    print("Alpha {} submitted successfully. ({}/5)".format(alpha_id[0], num_alpha))
+                elif result == False and tried_time < max_tried_time:
+                    db_update_combo(alpha_id[0])
+                    print("Can not submit alpha {}.".format(alpha_id[0]))
+                elif result == False and tried_time == max_tried_time:
+                    print("Time-out")
+                else:
+                    print("There was an exception!!!")
+        elif mode == "3":
+            print("WARNING: Pause the combo simulation!")
+            # Recheck 15 alphas >> Submit 1 >> Increase index >> Loop.
+            # If an alpha get stucks, cannot submit and show "Time-out" forever, the function will be stucked. But I'm too lazy for it, so well :v.
+            while num_alpha < 5:
+                stuff.re_check(sess,10)
+                db = mysql.connect(**config.config_db)
+                cursor = db.cursor()
+                cursor.execute(select_query.format(config.combo_criteria, 1)) # Choose one alpha to submit
+                alpha_id = cursor.fetchall()
+                db.close()
+                result, selfcorr, prodcorr, tried_time = submit_alpha(alpha_id[0][0], sess)
+                if result == True and tried_time < max_tried_time:
+                    num_alpha = num_alpha + 1
+                    db_move_combo(alpha_id[0][0], selfcorr, prodcorr, sess)
+                    utils.change_name(alpha_id[0][0], sess, name = 'submitted')
+                    update_actual_use_signals(alpha_id[0][0],alpha_id[0][1],alpha_id[0][2])
+                    print("Alpha {} submitted successfully. ({}/5)".format(alpha_id[0][0], num_alpha))
+                elif result == False and tried_time < max_tried_time:
+                    db_update_combo(alpha_id[0][0])
+                    print("Can not submit alpha {}.".format(alpha_id[0][0]))
+                elif result == False and tried_time == max_tried_time:
+                    print("Time-out")
+                else:
+                    print("There was an exception!!!")
     except Exception as ex:
         trace_msg = traceback.format_exception(etype=type(ex), value=ex, tb=ex.__traceback__)
         utils.db_insert_log("auto_submit",str(trace_msg), "")
-
-
 
 #### EXECUTE ######
 
