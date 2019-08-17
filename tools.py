@@ -80,7 +80,7 @@ def remove_space_alpha(table):
         trace_msg = traceback.format_exception(etype=type(ex), value=ex, tb=ex.__traceback__)
         utils.db_insert_log("remove_space", str(trace_msg),"")
 
-def update_actual_use_signals():
+def update_actual_use_signals_submitted():
     # Update actual use from existed submitted alpha
     try:
         select_query = "SELECT alpha_id, alpha_code, settings FROM submitted"
@@ -204,7 +204,7 @@ while True:
         elif table == "3":
             remove_space_alpha("submitted")
     elif mode == "7":
-        update_actual_use_signals()
+        update_actual_use_signals_submitted()
     else:
         break
 

@@ -120,15 +120,31 @@ def update_actual_use_signals():
             #     print(result[0][0])
     db.close()
 
+# db = mysql.connect(**config.config_db)
+# cursor = db.cursor()
+# delete_query = "DELETE FROM signals WHERE alpha_code = \'{}\' and alpha_id != \'\'";
+# select_query = "SELECT alpha_code FROM alpha_error WHERE message = \'Grouping data used outside of group operator.\'"
+# cursor.execute(select_query)
+# records = cursor.fetchall()
+# for record in records:
+#     alpha_code = record[0].replace(" ","")
+#     cursor.execute(delete_query.format(alpha_code))
+#     db.commit()
+# db.close()
+
+select_query = 'select alpha_id, alpha_code from submitted where alpha_code like \'a%\' order by length(alpha_code) asc'
 db = mysql.connect(**config.config_db)
 cursor = db.cursor()
-delete_query = "DELETE FROM signals WHERE alpha_code = \'{}\' and alpha_id != \'\'";
-select_query = "SELECT alpha_code FROM alpha_error WHERE message = \'Grouping data used outside of group operator.\'"
 cursor.execute(select_query)
 records = cursor.fetchall()
 for record in records:
-    alpha_code = record[0].replace(" ","")
-    cursor.execute(delete_query.format(alpha_code))
+    alpha_id = record[0]
+    alpha_code = record[1]
+    alpha_code = alpha_code.replace("a=","sn0=")
+    alpha_code = alpha_code.replace("b=","sn1=")
+    alpha_code = alpha_code.replace("c=","sn2=")
+    alpha_code = alpha_code.replace("d=add(a,b,c,filter=true);d","alpha=add(sn0,sn1,sn2,filter=true);alpha")
+    cursor.execute("UPDATE submitted SET alpha_code = \'{}\' WHERE alpha_id = \'{}\'".format(alpha_code,alpha_id))
     db.commit()
 db.close()
 
