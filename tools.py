@@ -64,7 +64,7 @@ def remove_space_alpha(table):
     # Remove space in signals, combo, and submitted table
     try:
         select_query = "SELECT alpha_id, alpha_code FROM {}".format(table)
-        update_query = "UPDATE" + str(table) + "SET alpha_code = \'{}\' WHERE alpha_id = \'{}\'"
+        update_query = "UPDATE " + str(table) + " SET alpha_code = \'{}\' WHERE alpha_id = \'{}\'"
         db = mysql.connect(**config.config_db)
         cursor = db.cursor()
         cursor.execute(select_query)
@@ -194,8 +194,8 @@ while True:
             time.sleep(5 * 60)
     elif mode == "6":
         print("[1]: Signals")
-        print("[1]: Combo")
-        print("[1]: Submitted alpha")
+        print("[2]: Combo")
+        print("[3]: Submitted alpha")
         table = str(input("\nChoose mode: "))
         if table == "1":
             remove_space_alpha("signals")
