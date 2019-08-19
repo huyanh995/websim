@@ -16,7 +16,7 @@ from datetime import datetime
 # Generate alphas from alldata and operators via signal_templates.
 # Output: alpha_code (s). I do not decide yet.
 
-group = ['market', 'sector', 'industry', 'subindustry']
+group = ['market', 'sector', 'industry', 'subindustry', 'country', 'exchange']
 neutral_group = ['market', 'industry']
 def get_combo_data(num,data):
     try:
