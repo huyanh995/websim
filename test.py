@@ -26,6 +26,7 @@ utils.login(sess)
 #     db.commit()
 # db.close()
 
-print(len(alldata.data["ASI"]))
-print(len(operators.operators()))
+for x in alldata.data["ASI"]:
+    print("DATA: " + x)
+    simulator.simulate_alpha(sess, x, "TOP1500", "ASI", 1)
 
