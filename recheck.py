@@ -7,11 +7,14 @@ import random
 from common import config, utils, stuff, simulator
 import mysql.connector as mysql
 
-from datetime import datetime
-
+from datetime import datetime, timedelta
+import pytz
+import time
 # Re-checking submission all combo from combo DB to get the precise self and prod correlation.
 # Recommend using after a day. 
 def db_update_signals(old_alpha_id, alpha_info):
+    if alpha_info["fitness"] == None:
+        alpha_info["fitness"] = -1
     values = (
         str(alpha_info["alpha_id"]),
         str(alpha_info["create_day"]),
@@ -33,10 +36,13 @@ def db_update_signals(old_alpha_id, alpha_info):
 
 def re_simulate_signals():
     try:
-        select_query = "SELECT alpha_id, alpha_code, universe, region FROM signals"
+        websim_time = datetime.now(pytz.timezone('EST5EDT'))
+        day_ws_time = str(websim_time).split(" ")[0]
+        num_days = int(day_ws_time.split("-")[-1])
+        select_query = "SELECT alpha_id, alpha_code, universe, region FROM signals WHERE datediff(\'{}\',updated_at) > 30".format(num_days)
         db = mysql.connect(**config.config_db)
         cursor = db.cursor()
-        cursor.execute("SELECT count(*) FROM signals")
+        cursor.execute("SELECT count(*) FROM signals WHERE WHERE datediff(\'{}\',updated_at) > 30".format(num_days))
         num_alpha = cursor.fetchall()[0][0]
         cursor.execute(select_query)
         results = cursor.fetchall()
