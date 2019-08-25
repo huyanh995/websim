@@ -222,6 +222,6 @@ if num_today >= 5:
     print("\nYou have submitted {}/5 alphas today. Just relax :)\n".format(num_today))
 else:
     print("Number of alpha submitted today: {}/5\n".format(num_today))
-    auto_submit(num_today, sess)
+    auto_submit("3", num_today, sess)
 
 
